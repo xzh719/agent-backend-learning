@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段2：LLM 基础 & API 集成 —— AI Agent 后端学习</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-card: #161b22;
+    --bg-hover: #1c2129;
+    --bg-code: #0d1117;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --orange: #d2991d;
+    --purple: #a371f7;
+    --red: #f85149;
+    --cyan: #39d2c0;
+    --pink: #db61a2;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+  .layout { display:flex; min-height:100vh; }
+  .sidebar { width: 280px; flex-shrink:0; background: var(--bg-card); border-right: 1px solid var(--border); padding: 2rem 1.5rem; position: sticky; top:0; height:100vh; overflow-y:auto; }
+  .sidebar h3 { font-size: 0.85rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.8rem; }
+  .sidebar .phase-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem; }
+  .sidebar nav { display:flex; flex-direction:column; gap: 0.3rem; }
+  .sidebar nav a { color: var(--text-muted); text-decoration: none; font-size: 0.88rem; padding: 0.45rem 0.7rem; border-radius: 6px; transition: all 0.15s; border-left: 2px solid transparent; }
+  .sidebar nav a:hover { color: var(--text); background: var(--bg-hover); }
+  .sidebar nav a.active { color: var(--accent); background: rgba(88,166,255,0.08); border-left-color: var(--accent); }
+  .sidebar .badge { display: inline-block; font-size: 0.7rem; padding: 0.12rem 0.4rem; border-radius: 4px; margin-left: 0.3rem; background: var(--border); color: var(--text-muted); }
+  .sidebar .badge.done { background: rgba(63,185,80,0.15); color: var(--green); }
+  .main { flex:1; padding: 2.5rem 3rem; max-width: 960px; }
+  .section { margin-bottom: 4rem; padding-bottom: 3rem; border-bottom: 1px solid var(--border); }
+  .section:last-child { border-bottom: none; }
+  .section h2 { font-size: 1.65rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.7rem; }
+  .section .s-num { width: 36px; height: 36px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; flex-shrink: 0; }
+  .section .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.8rem; }
+  h3 { font-size: 1.2rem; margin: 1.8rem 0 0.7rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
+  h4 { font-size: 1rem; margin: 1.4rem 0 0.5rem; color: var(--accent); }
+  p { margin-bottom: 0.8rem; color: var(--text-muted); }
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; color: var(--text-muted); }
+  li { margin-bottom: 0.25rem; }
+  pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 1.2rem 1.4rem; margin: 1rem 0 1.5rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace; position: relative; }
+  pre code { color: #c9d1d9; }
+  code { font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace; font-size: 0.85em; background: rgba(110,118,129,0.15); padding: 0.15em 0.4em; border-radius: 4px; }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  .kw { color: #ff7b72; }
+  .str { color: #a5d6ff; }
+  .cm { color: #8b949e; font-style: italic; }
+  .fn { color: #d2a8ff; }
+  .num { color: #79c0ff; }
+  .op { color: #ff7b72; }
+  .tp { color: #7ee787; }
+  .de { color: #d2a8ff; }
+  .bu { color: #79c0ff; }
+  .callout { border-left: 3px solid var(--accent); background: rgba(88,166,255,0.06); padding: 0.8rem 1.2rem; border-radius: 0 6px 6px 0; margin: 1.2rem 0; font-size: 0.9rem; }
+  .callout.warn { border-color: var(--orange); background: rgba(210,153,29,0.06); }
+  .callout.good { border-color: var(--green); background: rgba(63,185,80,0.06); }
+  .callout strong { color: var(--text); }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--accent); font-weight: 600; white-space: nowrap; }
+  td { color: var(--text-muted); }
+  .diagram { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 1.2rem; margin: 1rem 0; font-family: monospace; font-size: 0.82rem; white-space: pre; overflow-x: auto; color: var(--text-muted); line-height: 1.5; }
+  .conn-arrows { font-family: monospace; font-size: 0.82rem; color: var(--text-muted); background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0; overflow-x: auto; white-space: pre; line-height: 1.5; }
+  .nav-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); }
+  .nav-footer a { color: var(--accent); text-decoration: none; font-size: 0.9rem; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 6px; transition: all 0.15s; }
+  .nav-footer a:hover { background: var(--bg-hover); border-color: var(--accent); }
+  .nav-footer .disabled { color: var(--text-muted); cursor: not-allowed; opacity: 0.5; }
+  .progress { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.2rem; font-size: 0.85rem; color: var(--text-muted); }
+  .progress-bar { flex:1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.3s; }
+  @media (max-width: 860px) { .layout { flex-direction: column; } .sidebar { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--border); padding: 1.2rem; } .sidebar nav { flex-direction: row; flex-wrap: wrap; } .main { padding: 1.5rem; } }
+  html { scroll-behavior: smooth; }
+  .tag { display:inline-block; padding:0.1rem 0.5rem; border-radius:4px; font-size:0.75rem; margin-right:0.3rem; background:var(--border); color:var(--text-muted); }
+  .tag.green { background:rgba(63,185,80,0.12); color:var(--green); }
+  .tag.orange { background:rgba(210,153,29,0.12); color:var(--orange); }
+  .tag.purple { background:rgba(163,113,247,0.12); color:var(--purple); }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<aside class="sidebar">
+  <h3>AI Agent 后端学习</h3>
+  <div class="phase-title">阶段 2：LLM 基础 &amp; API 集成</div>
+  <div class="progress">
+    <span>进度</span>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <span id="progress-text">0/6</span>
+  </div>
+  <nav>
+    <a href="#s1" data-section="s1">1. Transformer 原理概览 <span class="badge" id="badge-s1"></span></a>
+    <a href="#s2" data-section="s2">2. OpenAI API 全面掌握 <span class="badge" id="badge-s2"></span></a>
+    <a href="#s3" data-section="s3">3. 多 Provider 统一封装 <span class="badge" id="badge-s3"></span></a>
+    <a href="#s4" data-section="s4">4. Prompt Engineering <span class="badge" id="badge-s4"></span></a>
+    <a href="#s5" data-section="s5">5. Token 计算与成本优化 <span class="badge" id="badge-s5"></span></a>
+    <a href="#s6" data-section="s6">6. 结构化输出 <span class="badge" id="badge-s6"></span></a>
+    <a href="#practice" data-section="practice" style="margin-top:0.8rem; color:var(--green);">🏗 综合实践项目</a>
+  </nav>
+</aside>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<main class="main">
+
+<!-- ── Header ── -->
+<div style="margin-bottom:3rem;">
+  <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:0.3rem;">← 回到 <a href="file:///D:/Hermes/workspace/agent-backend-roadmap.html" style="color:var(--cyan);">总路线图</a></p>
+  <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:0.3rem;">← 上一阶段 <a href="file:///D:/Hermes/workspace/agent-backend-learning/01-http-websocket-sse/phase1.html" style="color:var(--cyan);">阶段1：后端基础 & 网络协议</a></p>
+  <h1 style="font-size:2rem; background:linear-gradient(90deg,var(--accent),var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">
+    阶段 2：LLM 基础 &amp; API 集成
+  </h1>
+  <p style="color:var(--text-muted);">Transformer 原理、OpenAI API 深度使用、多 Provider 封装、Prompt Engineering、Token 优化、结构化输出</p>
+  <p style="color:var(--text-muted); font-size:0.85rem;">⏱ 预计 2 周 | 📚 6 个核心主题 | 🎯 构建多 Provider 统一的 LLM 客户端库</p>
+</div>
+
+<!-- ── 学习逻辑说明 ── -->
+<div class="callout">
+  <strong>学习路径逻辑：</strong>
+  这 6 个主题按照「原理 → 实践 → 工程 → 优化」的顺序排列 ——
+  先理解 <strong>Transformer 原理</strong> 才能理解 LLM 的 token 和注意力机制；
+  在此基础上 <strong>深度掌握 OpenAI API</strong>（最标准的 LLM API 设计）；
+  然后 <strong>统一封装多 Provider</strong>（Anthropic、DeepSeek、Groq 等各有差异）；
+  有了 API 基础后学 <strong>Prompt Engineering</strong> 让调用效果最大化；
+  接着用 <strong>Token 计算</strong> 精确控制成本；
+  最后用 <strong>结构化输出</strong> 让 LLM 返回机器可解析的数据，为阶段 3 的 Tool Calling 做好准备。
+</div>
+
+<!-- ═══════════ SECTION 1: Transformer 原理概览 ═══════════ -->
+<section class="section" id="s1">
+  <h2>
+    <span class="s-num" style="background:var(--accent); color:#fff;">1</span>
+    Transformer 原理概览
+  </h2>
+  <p class="subtitle">不需要精通训练细节，但必须理解「为什么 LLM 会这样回答」——注意力机制、上下文窗口、Tokenization、自回归生成。这些决定了 Agent 后端的设计上限。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-s1" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-s1" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>1.1 从 RNN 到 Transformer —— 为什么是革命？</h3>
+  <div class="diagram"><span class="kw">RNN/LSTM (旧范式):</span>
+"今天" → RNN → "天气" → RNN → "真" → RNN → "好"
+  ↑ 必须串行！无法并行训练。token 距离远了会遗忘。
+
+<span class="kw">Transformer (2017, "Attention Is All You Need"):</span>
+           ┌─────────────────────────────┐
+"今天" ──→│                             │──→ 0.1
+"天气" ──→│  Self-Attention              │──→ 0.3
+"真"   ──→│  (每个 token 同时看所有 token)│──→ 0.5
+"好"   ──→│                             │──→ 0.1
+           └─────────────────────────────┘
+  ↑ 完全并行！任意距离的 token 关系都能一次计算。</div>
+
+  <h3>1.2 核心组件（足够理解 LLM 行为即可）</h3>
+  <table>
+    <tr><th>组件</th><th>作用</th><th>Agent 意义</th></tr>
+    <tr><td><strong>Self-Attention</strong></td><td>每个 token 计算与所有其他 token 的关联权重</td><td>决定了模型「注意到」上下文的哪部分。Prompt 中关键信息要放在注意力最强的位置（开头和结尾）</td></tr>
+    <tr><td><strong>Multi-Head Attention</strong></td><td>多组并行的注意力（不同「视角」）</td><td>解释模型为何能同时关注语义、语法、指代</td></tr>
+    <tr><td><strong>Positional Encoding</strong></td><td>给 token 注入位置信息</td><td>顺序很重要！不要随意打乱 system/user/assistant 消息顺序</td></tr>
+    <tr><td><strong>LayerNorm + Residual</strong></td><td>稳定深层网络训练</td><td>—</td></tr>
+    <tr><td><strong>Feed-Forward (FFN)</strong></td><td>每个 token 独立的非线性变换（知识存储层）</td><td>模型知识的「记忆」主要存在这里</td></tr>
+    <tr><td><strong>Causal Mask</strong></td><td>防止看到未来 token（三角形掩码）</td><td>这就是为什么 LLM 是自回归的一一只能从左到右生成</td></tr>
+  </table>
+
+  <h3>1.3 Tokenization —— 被低估的核心</h3>
+  <p>LLM 处理的是 <strong>token</strong>，不是字符。Tokenization 把文本切成 token ID 序列。同一个词在不同 tokenizer 下可能切成不同数量的 token。</p>
+
+  <pre><code><span class="cm"># 用 tiktoken (OpenAI 的 tokenizer) 演示</span>
+<span class="kw">import</span> tiktoken
+
+enc = tiktoken.encoding_for_model(<span class="str">"gpt-4"</span>)
+tokens = enc.encode(<span class="str">"Hello, 你好世界！"</span>)
+<span class="bu">print</span>(tokens)  <span class="cm"># [9906, 11, 57668, 53901, 3574, 244, 98220, 6447]</span>
+<span class="bu">print</span>(<span class="bu">len</span>(tokens)) <span class="cm"># 8 — "Hello"=1 token, "你好世界"=好几个 token</span>
+
+<span class="cm"># 中英文 token 效率差异巨大：</span>
+english = enc.encode(<span class="str">"artificial intelligence"</span>)  <span class="cm"># 2 tokens</span>
+chinese = enc.encode(<span class="str">"人工智能"</span>)                   <span class="cm"># 3 tokens ← 同样语义，多 50%</span>
+
+<span class="cm"># 各模型 tokenizer 不同：</span>
+<span class="cm"># GPT-4    → cl100k_base (tiktoken)</span>
+<span class="cm"># Claude   → 不公开 tokenizer，靠 API 返回 usage 统计</span>
+<span class="cm"># DeepSeek → 自己的 BPE tokenizer</span>
+<span class="cm"># Llama    → SentencePiece (BPE)</span></code></pre>
+
+  <div class="callout warn">
+    <strong>Agent 实战教训：</strong>Token 数量 ≠ 字符数量。中文内容是 Token 大户（平均 1 个汉字 = 1.5~2 token）。在做 Token 预算管理时一定要用对应的 tokenizer 精确计算，不能用「字数 × 2」这种粗略估算。
+  </div>
+
+  <h3>1.4 自回归生成 (Autoregressive Generation)</h3>
+  <p>LLM 生成是走一步看一步的：每次输入全部历史，输出下一个 token，然后把这个新 token 拼回去，继续生成。这就是为什么 <strong>context 越长越慢越贵</strong> —— 每次都要把整个上下文重新编码。</p>
+
+  <div class="diagram">输入:   [system: "你是助手"]  [user: "1+1=?"]
+         ↓ 前向传播
+输出:   "2"
+         ↓ 拼回去
+输入:   [system: "你是助手"]  [user: "1+1=?"]  [assistant: "2"]
+         ↓ 再次前向传播（整个序列重算！）
+输出:   "。"
+         ↓ 拼回去
+输入:   [system: "你是助手"]  [user: "1+1=?"]  [assistant: "2。"]
+         ↓ ...
+输出:   结束信号 (EOS / stop token)
+
+这就是 <span class="kw">Chat Completions API</span> 的底层：
+messages 数组每次递增，模型重复计算整个序列。</div>
+
+  <h3>1.5 关键参数 —— Agent 必须掌握</h3>
+  <table>
+    <tr><th>参数</th><th>含义</th><th>推荐范围</th><th>Agent 用途</th></tr>
+    <tr><td><code>temperature</code></td><td>随机度，越高越「发散」，越低越「保守」</td><td>0~2</td><td>创造类任务 0.8~1.2；事实/代码/calling 0~0.3</td></tr>
+    <tr><td><code>top_p</code></td><td>核采样——只从概率累积到 top_p 的 token 中选</td><td>0~1</td><td>与 temperature 二选一（不要同时调）</td></tr>
+    <tr><td><code>max_tokens</code></td><td>输出 token 上限（不含输入）</td><td>视需求</td><td>防止无限生成烧钱；工具调用设小点</td></tr>
+    <tr><td><code>stop</code></td><td>停止序列（最多 4 个）</td><td>如 <code>["\n\n"]</code></td><td>让 LLM 提前结束，控制输出格式</td></tr>
+    <tr><td><code>presence_penalty</code></td><td></td><td>降低已出现 token 概率（-2~2）</td><td>减少重复</td></tr>
+    <tr><td><code>frequency_penalty</code></td><td>按频率降低 token 概率（-2~2）</td><td>按频率降低 token 概率（-2~2）</td><td>减少高频词，增加多样性</td></tr>
+    <tr><td><code>seed</code></td><td>随机种子（确定性输出）</td><td>任意整数</td><td>测试、调试、回归验证</td></tr>
+  </table>
+
+  <div class="callout">
+    <strong>temperature=0 的陷阱：</strong>
+    不会完全确定性。浮点运算的微小差异仍会产生不同结果。要真正确定性，同时设 <code>temperature=0</code> + <code>seed=N</code>（OpenAI 支持，但不是所有 Provider 都支持）。
+  </div>
+
+  <h3>1.6 Instruct 训练与 Chat Template</h3>
+  <p>LLM 不天然会对话。它经过 <strong>Instruct Tuning</strong> 后学会了角色扮演。每个模型的 chat template 不同：</p>
+  <pre><code><span class="cm"># OpenAI / DeepSeek 的 ChatML 格式</span>
+&lt;|im_start|&gt;system
+You are a helpful assistant.&lt;|im_end|&gt;
+&lt;|im_start|&gt;user
+Hi&lt;|im_end|&gt;
+&lt;|im_start|&gt;assistant
+Hello! How can I help?&lt;|im_end|&gt;
+
+<span class="cm"># Llama 的格式</span>
+&lt;s&gt;[INST] &lt;&lt;SYS&gt;&gt;
+You are a helpful assistant.
+&lt;&lt;/SYS&gt;&gt;
+Hi [/INST] Hello! How can I help? &lt;/s&gt;
+
+<span class="cm"># 用 Chat Completions API 时 Provider 自动套模板，不用手动拼。
+# 但用 open-source 模型直接推理时必须按模板格式化！</span></code></pre>
+
+  <h3>1.7 预填充 (Prefill) vs 解码 (Decode) —— 理解成本结构</h3>
+  <table>
+    <tr><th>阶段</th><th>计算方式</th><th>速度</th><th>成本</th></tr>
+    <tr><td><strong>Prefill</strong><br>(处理输入)</td><td>并行处理所有输入 token<br>一次前向传播算完整个 prompt</td><td>很快</td><td>按 input token 计费<br>(便宜)</td></tr>
+    <tr><td><strong>Decode</strong><br>(生成输出)</td><td>逐 token 自回归生成<br>每次都要重算整个序列</td><td>慢</td><td>按 output token 计费<br>(贵 2~10×)</td></tr>
+  </table>
+  <div class="callout warn">
+    <strong>省钱原则：</strong>短 prompt 让 LLM 生成长回复 = 小 input × 大 output = 贵！<br>
+    长 prompt 让 LLM 给简短答案 = 大 input × 小 output = 在可控范围。<br>
+    Agent 设计的核心权衡：尽量把信息放 prompt 里（便宜），别让 LLM 自己去「想」（贵）。
+  </div>
+</section>
+
+<!-- ═══════════ SECTION 2: OpenAI API ═══════════ -->
+<section class="section" id="s2">
+  <h2>
+    <span class="s-num" style="background:var(--green); color:#fff;">2</span>
+    OpenAI API 全面掌握
+  </h2>
+  <p class="subtitle">OpenAI API 是 LLM API 的事实标准。掌握它之后，其他 Provider 都是它的「方言」。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-s2" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-s2" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>2.1 API 全景图</h3>
+  <table>
+    <tr><th>Endpoint</th><th>用途</th><th>Agent 场景</th></tr>
+    <tr><td><code>POST /v1/chat/completions</code></td><td>对话补全 <strong>（核心！）</strong></td><td>90% 的调用都在这里</td></tr>
+    <tr><td><code>POST /v1/embeddings</code></td><td>文本向量化</td><td>RAG 检索、语义搜索、记忆匹配</td></tr>
+    <tr><td><code>POST /v1/audio/transcriptions</code></td><td>语音转文字 (Whisper)</td><td>语音 Agent</td></tr>
+    <tr><td><code>POST /v1/audio/speech</code></td><td>文字转语音 (TTS)</td><td>语音回复</td></tr>
+    <tr><td><code>POST /v1/images/generations</code></td><td>图像生成 (DALL·E)</td><td>多模态 Agent</td></tr>
+    <tr><td><code>GET /v1/models</code></td><td>列出可用模型</td><td>动态模型发现</td></tr>
+  </table>
+
+  <h3>2.2 Chat Completions —— 完整参数剖析</h3>
+  <pre><code><span class="kw">import</span> openai
+
+client = openai.OpenAI(api_key=<span class="str">"sk-..."</span>)
+
+response = client.chat.completions.create(
+    model=<span class="str">"gpt-4o"</span>,
+    messages=[
+        {<span class="str">"role"</span>: <span class="str">"system"</span>,  <span class="str">"content"</span>: <span class="str">"You are a coding assistant."</span>},
+        {<span class="str">"role"</span>: <span class="str">"user"</span>,    <span class="str">"content"</span>: <span class="str">"Write a hello.py"</span>},
+        <span class="cm"># role 可以是: system, user, assistant, tool, function(deprecated)</span>
+        <span class="cm"># content 可以是: str 或 [{"type":"text","text":"..."}, {"type":"image_url",...}]</span>
+    ],
+    temperature=<span class="num">0.3</span>,
+    max_tokens=<span class="num">2000</span>,
+    top_p=<span class="num">1.0</span>,
+    n=<span class="num">1</span>,                          <span class="cm"># 生成几个候选（>1 时 choices 数组变长）</span>
+    stop=[<span class="str">"\n\n\n"</span>],                 <span class="cm"># 触到这些字符串立即停止</span>
+    presence_penalty=<span class="num">0</span>,
+    frequency_penalty=<span class="num">0</span>,
+    seed=<span class="num">42</span>,                       <span class="cm"># 确定性（需同时 temperature=0）</span>
+
+    <span class="cm"># ---- 流式 ----</span>
+    stream=<span class="kw">False</span>,                   <span class="cm"># True → 返回 SSE 迭代器</span>
+    stream_options={<span class="str">"include_usage"</span>: <span class="kw">True</span>},  <span class="cm"># 流式时也能拿 usage</span>
+
+    <span class="cm"># ---- 函数调用（详见阶段3）----</span>
+    tools=[...],
+    tool_choice=<span class="str">"auto"</span>,
+
+    <span class="cm"># ---- 结构化输出 ----</span>
+    response_format={<span class="str">"type"</span>: <span class="str">"json_object"</span>},  <span class="cm"># 或 json_schema</span>
+
+    <span class="cm"># ---- Logprobs ----</span>
+    logprobs=<span class="kw">True</span>,
+    top_logprobs=<span class="num">5</span>,               <span class="cm"># 返回 top-5 备选 token 及概率</span>
+)
+
+<span class="cm"># 响应结构</span>
+msg = response.choices[<span class="num">0</span>].message
+<span class="bu">print</span>(msg.content)                       <span class="cm"># "Here's a hello.py:\n\nprint('Hello')"</span>
+<span class="bu">print</span>(msg.role)                          <span class="cm"># "assistant"</span>
+<span class="bu">print</span>(msg.tool_calls)                    <span class="cm"># None (没触发 function calling)</span>
+<span class="bu">print</span>(response.usage)                    <span class="cm"># CompletionUsage(prompt_tokens=32,</span>
+                                            <span class="cm">#   completion_tokens=18, total_tokens=50)</span>
+<span class="bu">print</span>(response.model)                    <span class="cm"># "gpt-4o-2024-05-13"</span>
+<span class="bu">print</span>(response.system_fingerprint)       <span class="cm"># "fp_xxx" ← 模型版本指纹</span>
+<span class="bu">print</span>(response.id)                       <span class="cm"># "chatcmpl-xxx" ← 唯一请求 ID</span></code></pre>
+
+  <h3>2.3 流式 (Streaming) —— Agent 的必修课</h3>
+  <pre><code><span class="cm"># 基本模式</span>
+stream = client.chat.completions.create(
+    model=<span class="str">"gpt-4o-mini"</span>,
+    messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"讲个笑话"</span>}],
+    stream=<span class="kw">True</span>,
+    stream_options={<span class="str">"include_usage"</span>: <span class="kw">True</span>},  <span class="cm"># ★ 必须加，否则没 usage</span>
+)
+
+<span class="kw">for</span> chunk <span class="kw">in</span> stream:
+    <span class="kw">if</span> chunk.choices:
+        delta = chunk.choices[<span class="num">0</span>].delta
+        <span class="kw">if</span> delta.content:
+            <span class="bu">print</span>(delta.content, end=<span class="str">""</span>, flush=<span class="kw">True</span>)
+        <span class="kw">if</span> delta.tool_calls:
+            <span class="cm"># 工具调用也是分片的（详见 6.3）</span>
+            <span class="kw">pass</span>
+    <span class="kw">if</span> chunk.usage:
+        <span class="bu">print</span>(<span class="str">f"\nTokens: </span>{chunk.usage}<span class="str">"</span>)</code></pre>
+
+  <h4>中断流式生成</h4>
+  <pre><code><span class="cm"># 客户端要停止生成 → 调用 stream.close()</span>
+<span class="kw">for</span> chunk <span class="kw">in</span> stream:
+    <span class="kw">if</span> user_clicked_stop:
+        stream.close()  <span class="cm"># 关闭底层 HTTP 连接，服务端停止计算</span>
+        <span class="kw">break</span></code></pre>
+
+  <h3>2.4 Vision —— 多模态输入</h3>
+  <pre><code>response = client.chat.completions.create(
+    model=<span class="str">"gpt-4o"</span>,  <span class="cm"># 必须用 vision 模型</span>
+    messages=[{
+        <span class="str">"role"</span>: <span class="str">"user"</span>,
+        <span class="str">"content"</span>: [
+            {<span class="str">"type"</span>: <span class="str">"text"</span>, <span class="str">"text"</span>: <span class="str">"这张图里有什么？"</span>},
+            {
+                <span class="str">"type"</span>: <span class="str">"image_url"</span>,
+                <span class="str">"image_url"</span>: {
+                    <span class="str">"url"</span>: <span class="str">"https://example.com/photo.jpg"</span>,
+                    <span class="cm"># 或 base64: "url": "data:image/jpeg;base64,/9j/4AAQ..."</span>
+                    <span class="str">"detail"</span>: <span class="str">"auto"</span>  <span class="cm"># low | high | auto</span>
+                }
+            }
+        ]
+    }]
+)</code></pre>
+
+  <h3>2.5 Logprobs —— 调试神器</h3>
+  <p>Logprobs 告诉你模型在每个位置「想说什么但又没说」。在 Agent 场景下用于：路由准确性检测、幻觉概率估计、结构化输出校验。</p>
+  <pre><code>response = client.chat.completions.create(
+    model=<span class="str">"gpt-4o"</span>,
+    messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"1+1=?"</span>}],
+    logprobs=<span class="kw">True</span>,
+    top_logprobs=<span class="num">3</span>,
+)
+
+choice = response.choices[<span class="num">0</span>]
+<span class="kw">for</span> token_info <span class="kw">in</span> choice.logprobs.content:
+    <span class="bu">print</span>(<span class="str">f"Token: </span>{token_info.token}<span class="str">"</span>)
+    <span class="bu">print</span>(<span class="str">f"  Prob: </span>{<span class="bu">round</span>(<span class="bu">exp</span>(token_info.logprob)*<span class="num">100</span>, <span class="num">1</span>)}<span class="str">%</span>"</span>)
+    <span class="kw">for</span> alt <span class="kw">in</span> token_info.top_logprobs:
+        <span class="bu">print</span>(<span class="str">f"  alt: </span>{alt.token}<span class="str"> (</span>{<span class="bu">round</span>(<span class="bu">exp</span>(alt.logprob)*<span class="num">100</span>, <span class="num">1</span>)}<span class="str">%</span>)"</span>)
+
+<span class="cm"># 输出:</span>
+<span class="cm"># Token: 2</span>
+<span class="cm">#   Prob: 99.8%</span>
+<span class="cm">#   alt:  (0.1%)</span>
+<span class="cm">#   alt: 1 (0.05%)</span>
+<span class="cm">#   alt:   (0.03%)</span>
+
+<span class="cm"># Agent 实战：用 logprobs 检测「模型是否真的确定了」</span>
+<span class="kw">def</span> <span class="fn">is_model_sure</span>(logprob_content, threshold=<span class="num">0.9</span>):
+    <span class="str">"""如果模型对每个 token 都 > 90% 确定，说明输出可信"""</span>
+    <span class="kw">return</span> <span class="bu">all</span>(
+        <span class="bu">exp</span>(t.logprob) > threshold <span class="kw">for</span> t <span class="kw">in</span> logprob_content
+    )</code></pre>
+
+  <h3>2.6 Rate Limits 详解</h3>
+  <table>
+    <tr><th>限制维度</th><th>含义</th><th>免费/Tier 1</th><th>Tier 5</th></tr>
+    <tr><td><strong>RPM</strong></td><td>每分钟请求数</td><td>3~500</td><td>10,000</td></tr>
+    <tr><td><strong>TPM</strong></td><td>每分钟 token 数</td><td>40K~200K</td><td>30,000,000</td></tr>
+    <tr><td><strong>RPD</strong></td><td>每天请求数 (部分模型)</td><td>200~10,000</td><td>无限制</td></tr>
+    <tr><td><strong>Batch queue</strong></td><td>批处理队列大小</td><td>—</td><td>最大 5,000 条</td></tr>
+  </table>
+  <div class="callout warn">
+    <strong>TPM 是最容易爆的瓶颈！</strong> 一次调用 10K input + 2K output = 12K tokens。500 RPM × 12K = 6M TPM——虽然 RPM 没到，但 TPM 可能已超。必须同时监控 RPM 和 TPM。
+  </div>
+
+  <h3>2.7 成本速查表 (2024-2025)</h3>
+  <table>
+    <tr><th>模型</th><th>Input ($/1M tokens)</th><th>Output ($/1M tokens)</th><th>特点</th></tr>
+    <tr><td>gpt-4o</td><td>$2.50</td><td>$10.00</td><td>旗舰，多模态</td></tr>
+    <tr><td>gpt-4o-mini</td><td>$0.15</td><td>$0.60</td><td>性价比之王</td></tr>
+    <tr><td>gpt-4-turbo</td><td>$10.00</td><td>$30.00</td><td>旧旗舰，贵</td></tr>
+    <tr><td>claude-3.5-sonnet</td><td>$3.00</td><td>$15.00</td><td>代码能力强</td></tr>
+    <tr><td>claude-3-haiku</td><td>$0.25</td><td>$1.25</td><td>快速响应</td></tr>
+    <tr><td>deepseek-chat</td><td>¥1.00</td><td>¥2.00</td><td>极便宜，中文好</td></tr>
+  </table>
+  <p style="font-size:0.8rem; color:var(--text-muted);">价格频繁变动，请以官方页面为准：<a href="https://openai.com/api/pricing/" style="color:var(--cyan);">OpenAI Pricing</a></p>
+</section>
+
+<!-- ═══════════ SECTION 3: 多 Provider 统一封装 ═══════════ -->
+<section class="section" id="s3">
+  <h2>
+    <span class="s-num" style="background:var(--orange); color:#fff;">3</span>
+    多 Provider 统一封装
+  </h2>
+  <p class="subtitle">Agent 不能只绑死一个 Provider。OpenAI、Anthropic、DeepSeek、Groq、Together... 每个 API 都有差异，需要统一抽象。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-s3" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-s3" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>3.1 Provider 差异矩阵</h3>
+  <table>
+    <tr><th>Provider</th><th>Base URL</th><th>Auth Header</th><th>兼容 OpenAI?</th><th>陷阱</th></tr>
+    <tr><td><strong>OpenAI</strong></td><td><code>https://api.openai.com/v1</code></td><td><code>Bearer sk-...</code></td><td>✅ 标准</td><td>—</td></tr>
+    <tr><td><strong>Anthropic</strong></td><td><code>https://api.anthropic.com/v1</code></td><td><code>x-api-key: sk-ant-...</code></td><td>❌ 完全不同</td><td>message 格式、role 名、stream 格式全部不同</td></tr>
+    <tr><td><strong>DeepSeek</strong></td><td><code>https://api.deepseek.com/v1</code></td><td><code>Bearer sk-...</code></td><td>✅ 高度兼容</td><td>不支持 logprobs；部分参数忽略无报错</td></tr>
+    <tr><td><strong>Groq</strong></td><td><code>https://api.groq.com/openai/v1</code></td><td><code>Bearer gsk_...</code></td><td>✅ 高度兼容</td><td>超快但上下文窗口小（8K）；tool calling 有限</td></tr>
+    <tr><td><strong>Together</strong></td><td><code>https://api.together.xyz/v1</code></td><td><code>Bearer ...</code></td><td>✅ 高度兼容</td><td>不同模型的 chat template 可能不对齐</td></tr>
+    <tr><td><strong>OpenRouter</strong></td><td><code>https://openrouter.ai/api/v1</code></td><td><code>Bearer sk-or-...</code></td><td>✅ 高度兼容</td><td>统一网关，可调任意模型；价格有加价</td></tr>
+    <tr><td><strong>Google AI</strong></td><td><code>https://generativelanguage.googleapis.com/v1beta</code></td><td><code>?key=...</code></td><td>❌ 完全不同</td><td>REST 格式、安全过滤、candidate 数组</td></tr>
+  </table>
+
+  <h3>3.2 统一抽象接口设计</h3>
+  <pre><code><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+<span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field
+<span class="kw">from</span> typing <span class="kw">import</span> AsyncIterator, Optional
+
+<span class="de">@dataclass</span>
+<span class="kw">class</span> <span class="tp">LLMMessage</span>:
+    role: <span class="tp">str</span>                <span class="cm"># system | user | assistant | tool</span>
+    content: <span class="tp">str</span>
+    tool_call_id: Optional[<span class="tp">str</span>] = <span class="kw">None</span>
+    tool_calls: Optional[<span class="tp">list</span>] = <span class="kw">None</span>
+
+<span class="de">@dataclass</span>
+<span class="kw">class</span> <span class="tp">LLMResponse</span>:
+    content: <span class="tp">str</span>
+    tool_calls: <span class="tp">list</span> = field(default_factory=<span class="tp">list</span>)
+    usage: <span class="tp">dict</span> = field(default_factory=<span class="tp">dict</span>)
+    model: <span class="tp">str</span> = <span class="str">""</span>
+    finish_reason: <span class="tp">str</span> = <span class="str">""</span>
+
+<span class="de">@dataclass</span>
+<span class="kw">class</span> <span class="tp">LLMStreamChunk</span>:
+    delta_content: Optional[<span class="tp">str</span>] = <span class="kw">None</span>
+    delta_tool_calls: <span class="tp">list</span> = field(default_factory=<span class="tp">list</span>)
+    finish_reason: Optional[<span class="tp">str</span>] = <span class="kw">None</span>
+    usage: Optional[<span class="tp">dict</span>] = <span class="kw">None</span>
+
+<span class="kw">class</span> <span class="tp">BaseLLMProvider</span>(ABC):
+    <span class="str">"""所有 LLM Provider 必须实现的统一接口"""</span>
+
+    <span class="de">@abstractmethod</span>
+    <span class="kw">async def</span> <span class="fn">chat</span>(<span class="kw">self</span>,
+              messages: <span class="tp">list</span>[LLMMessage],
+              temperature: <span class="tp">float</span> = <span class="num">0.7</span>,
+              max_tokens: <span class="tp">int</span> = <span class="num">4096</span>,
+              tools: Optional[<span class="tp">list</span>] = <span class="kw">None</span>) -> LLMResponse:
+        <span class="str">"""非流式调用"""</span>
+        ...
+
+    <span class="de">@abstractmethod</span>
+    <span class="kw">async def</span> <span class="fn">chat_stream</span>(<span class="kw">self</span>,
+                   messages: <span class="tp">list</span>[LLMMessage],
+                   temperature: <span class="tp">float</span> = <span class="num">0.7</span>,
+                   max_tokens: <span class="tp">int</span> = <span class="num">4096</span>,
+                   tools: Optional[<span class="tp">list</span>] = <span class="kw">None</span>) -> AsyncIterator[LLMStreamChunk]:
+        <span class="str">"""流式调用"""</span>
+        ...
+
+    <span class="de">@property</span>
+    <span class="de">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">model_name</span>(<span class="kw">self</span>) -> <span class="tp">str</span>: ...
+
+    <span class="de">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">count_tokens</span>(<span class="kw">self</span>, text: <span class="tp">str</span>) -> <span class="tp">int</span>: ...</code></pre>
+
+  <h3>3.3 OpenAI Provider 实现</h3>
+  <pre><code><span class="kw">class</span> <span class="tp">OpenAIProvider</span>(BaseLLMProvider):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, api_key: <span class="tp">str</span>, model: <span class="tp">str</span> = <span class="str">"gpt-4o-mini"</span>):
+        <span class="kw">self</span>._model = model
+        <span class="kw">self</span>.client = openai.AsyncOpenAI(api_key=api_key)
+
+    <span class="kw">async def</span> <span class="fn">chat</span>(<span class="kw">self</span>, messages, temperature=<span class="num">0.7</span>, max_tokens=<span class="num">4096</span>, tools=<span class="kw">None</span>):
+        resp = <span class="kw">await self</span>.client.chat.completions.create(
+            model=<span class="kw">self</span>._model,
+            messages=[{<span class="str">"role"</span>: m.role, <span class="str">"content"</span>: m.content} <span class="kw">for</span> m <span class="kw">in</span> messages],
+            temperature=temperature, max_tokens=max_tokens,
+            tools=tools,
+        )
+        choice = resp.choices[<span class="num">0</span>]
+        <span class="kw">return</span> LLMResponse(
+            content=choice.message.content <span class="kw">or</span> <span class="str">""</span>,
+            usage={<span class="str">"input"</span>: resp.usage.prompt_tokens,
+                   <span class="str">"output"</span>: resp.usage.completion_tokens},
+            model=resp.model,
+            finish_reason=choice.finish_reason <span class="kw">or</span> <span class="str">""</span>,
+        )
+
+    <span class="kw">@property</span>
+    <span class="kw">def</span> <span class="fn">model_name</span>(<span class="kw">self</span>): <span class="kw">return self</span>._model
+
+    <span class="kw">def</span> <span class="fn">count_tokens</span>(<span class="kw">self</span>, text):
+        <span class="kw">return</span> <span class="bu">len</span>(tiktoken.encoding_for_model(<span class="kw">self</span>._model).encode(text))</code></pre>
+
+  <h3>3.4 Anthropic Provider —— 处理差异</h3>
+  <pre><code><span class="kw">class</span> <span class="tp">AnthropicProvider</span>(BaseLLMProvider):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, api_key: <span class="tp">str</span>, model: <span class="tp">str</span> = <span class="str">"claude-3-5-sonnet-20241022"</span>):
+        <span class="kw">self</span>._model = model
+        <span class="kw">self</span>._key = api_key
+        <span class="kw">self</span>._url = <span class="str">"https://api.anthropic.com/v1/messages"</span>
+
+    <span class="kw">def</span> <span class="fn">_convert_messages</span>(<span class="kw">self</span>, messages: <span class="tp">list</span>[LLMMessage]):
+        <span class="str">"""Anthropic 的消息格式完全不同！"""</span>
+        system_prompt = <span class="str">""</span>
+        anthropic_msgs = []
+        <span class="kw">for</span> m <span class="kw">in</span> messages:
+            <span class="kw">if</span> m.role == <span class="str">"system"</span>:
+                system_prompt = m.content  <span class="cm"># Anthropic 的 system 是顶层参数!</span>
+            <span class="kw">else</span>:
+                anthropic_msgs.append({
+                    <span class="str">"role"</span>: m.role,
+                    <span class="str">"content"</span>: m.content,
+                })
+        <span class="kw">return</span> system_prompt, anthropic_msgs
+
+    <span class="kw">async def</span> <span class="fn">chat</span>(<span class="kw">self</span>, messages, temperature=<span class="num">0.7</span>, max_tokens=<span class="num">4096</span>, tools=<span class="kw">None</span>):
+        system, an_msgs = <span class="kw">self</span>._convert_messages(messages)
+        headers = {
+            <span class="str">"x-api-key"</span>: <span class="kw">self</span>._key,
+            <span class="str">"anthropic-version"</span>: <span class="str">"2023-06-01"</span>,
+            <span class="str">"content-type"</span>: <span class="str">"application/json"</span>,
+        }
+        body = {
+            <span class="str">"model"</span>: <span class="kw">self</span>._model,
+            <span class="str">"max_tokens"</span>: max_tokens,
+            <span class="str">"messages"</span>: an_msgs,
+            <span class="str">"temperature"</span>: temperature,
+        }
+        <span class="kw">if</span> system:
+            body[<span class="str">"system"</span>] = system       <span class="cm"># ← 关键差异!</span>
+        <span class="kw">if</span> tools:
+            body[<span class="str">"tools"</span>] = tools          <span class="cm"># Anthropic tool 格式也不同</span>
+
+        <span class="kw">async with</span> aiohttp.ClientSession() <span class="kw">as</span> session:
+            <span class="kw">async with</span> session.post(<span class="kw">self</span>._url, json=body, headers=headers) <span class="kw">as</span> resp:
+                data = <span class="kw">await</span> resp.json()
+                <span class="kw">return</span> LLMResponse(
+                    content=data[<span class="str">"content"</span>][<span class="num">0</span>][<span class="str">"text"</span>],
+                    usage={<span class="str">"input"</span>: data[<span class="str">"usage"</span>][<span class="str">"input_tokens"</span>],
+                           <span class="str">"output"</span>: data[<span class="str">"usage"</span>][<span class="str">"output_tokens"</span>]},
+                    model=data[<span class="str">"model"</span>],
+                    finish_reason=data[<span class="str">"stop_reason"</span>] <span class="kw">or</span> <span class="str">""</span>,
+                )</code></pre>
+
+  <h3>3.5 Provider 工厂 + 动态路由</h3>
+  <pre><code><span class="kw">class</span> <span class="tp">ProviderRouter</span>:
+    <span class="str">"""根据模型名、任务类型、预算自动选择 Provider"""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, providers: <span class="tp">dict</span>[<span class="tp">str</span>, BaseLLMProvider]):
+        <span class="kw">self</span>.providers = providers
+
+    <span class="kw">def</span> <span class="fn">get</span>(<span class="kw">self</span>, model: <span class="tp">str</span>) -> BaseLLMProvider:
+        key = model.split(<span class="str">"/"</span>)[<span class="num">0</span>]  <span class="cm"># "openai/gpt-4o-mini" → "openai"</span>
+        <span class="kw">if</span> key <span class="kw">not in</span> <span class="kw">self</span>.providers:
+            <span class="kw">raise</span> <span class="tp">ValueError</span>(<span class="str">f"Unknown provider: </span>{key}<span class="str">"</span>)
+        <span class="kw">return self</span>.providers[key]
+
+    <span class="kw">def</span> <span class="fn">route_by_task</span>(<span class="kw">self</span>, task_type: <span class="tp">str</span>) -> BaseLLMProvider:
+        <span class="str">"""简单路由：代码→Claude, 对话→DeepSeek, 视觉→OpenAI"""</span>
+        routing = {
+            <span class="str">"code"</span>: <span class="str">"anthropic"</span>,
+            <span class="str">"chat"</span>: <span class="str">"deepseek"</span>,
+            <span class="str">"vision"</span>: <span class="str">"openai"</span>,
+        }
+        <span class="kw">return self</span>.providers[routing.get(task_type, <span class="str">"openai"</span>)]</code></pre>
+
+  <div class="callout">
+    <strong>为什么不用 LiteLLM / LangChain？</strong><br>
+    它们确实封装好了多 Provider，但：① 依赖重、版本冲突多；② 抽象层太厚，出 bug 难调试；③ Agent 需要精细控制（retry、circuit breaker、自定义路由），自己写 200 行就够了。理解底层后，要不要用框架是你的选择。
+  </div>
+</section>
+
+<!-- ═══════════ SECTION 4: Prompt Engineering ═══════════ -->
+<section class="section" id="s4">
+  <h2>
+    <span class="s-num" style="background:var(--purple); color:#fff;">4</span>
+    Prompt Engineering
+  </h2>
+  <p class="subtitle">Agent 的 prompt 不是写死的文案，而是动态构建的控制程序。你的 prompt 能力直接决定 Agent 的可靠性。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-s4" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-s4" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>4.1 Prompt 的四个层次</h3>
+  <div class="diagram">Level 1: <span class="kw">System Prompt</span> (角色 + 规则)
+  →  "You are a coding assistant. Always use TypeScript. Never apologize."
+
+Level 2: <span class="kw">Context Injection</span> (动态上下文)
+  →  "Current date: 2025-06-05\nUser's OS: Windows 10\nGit branch: main"
+
+Level 3: <span class="kw">Tools Description</span> (工具声明)
+  →  functions: [{name: "search", description: "搜索知识库", parameters: {...}}]
+
+Level 4: <span class="kw">Conversation History</span> (对话历史)
+  →  [user: "Hello", assistant: "Hi!", user: "帮我写代码", ...]
+
+这四个层次 <strong>从上到下越来越动态</strong>。System Prompt 可能几周不变，
+Conversation History 每次请求都变。总 token 数必须控制在上下文窗口内。</div>
+
+  <h3>4.2 System Prompt 设计原则</h3>
+  <pre><code><span class="cm"># ❌ 糟糕的 system prompt —— 模糊、矛盾、遗漏</span>
+<span class="str">"You are a helpful AI. Be nice and answer questions."</span>
+
+<span class="cm"># ✅ 好的 system prompt —— 清晰、具体、可测试</span>
+<span class="str">"""
+You are a terminal-based coding assistant. Follow these rules:
+
+1. LANGUAGE: Always write Python 3.11+ code unless asked otherwise.
+2. PACKAGES: Only use stdlib + 'httpx', 'pydantic'. Do NOT use requests.
+3. FORMAT: Return ONLY the code block, no explanation before or after.
+4. ERROR HANDLING: Always include try/except with specific exceptions.
+5. TERMINATION: If user asks for a plan, output as markdown. No code.
+6. CONSTRAINT: Never create files larger than 500 lines.
+7. OUTPUT: Print results to stdout, not files, unless asked.
+"""</span></code></pre>
+
+  <p><strong>Agent System Prompt 检查清单：</strong></p>
+  <ul>
+    <li>✅ 有没有明确定义角色？（"You are X"）</li>
+    <li>✅ 有没有说明约束？（"Never do X", "Always do Y"）</li>
+    <li>✅ 有没有给正反例？（"Good: ... Bad: ..."）</li>
+    <li>✅ 有没有定义输出格式？（"Return as JSON"）</li>
+    <li>✅ 有没有错误的兜底策略？（"If unsure, say I don't know"）</li>
+    <li>✅ 有没有加上工具使用指引？（"Use tool X for Y"）</li>
+    <li>❌ 不要写自相矛盾的规则（"Be concise" + "Give detailed explanations"）</li>
+    <li>❌ 不要写无法执行的要求（"Always be correct"）</li>
+  </ul>
+
+  <h3>4.3 Few-Shot Prompting —— Agent 控制力的秘密</h3>
+  <pre><code><span class="cm"># Zero-shot (不给例子) —— 输出不确定</span>
+messages = [{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"提取这句话中的日期: 会议定在2025年6月5日下午3点"</span>}]
+<span class="cm"># → 模型可能返回 "2025年6月5日下午3点" 或 "2025-06-05 15:00" 或 JSON...</span>
+
+<span class="cm"># Few-shot (给 2-3 个例子) —— 输出精确可控</span>
+messages = [
+    {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"Input: 明天下午2点开会\nOutput: {\"date\":\"2025-06-06\",\"time\":\"14:00\"}"</span>},
+    {<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: <span class="str">"Got it. Following format."</span>},
+    {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"Input: 下周五晚上7点半见\nOutput: {\"date\":\"2025-06-13\",\"time\":\"19:30\"}"</span>},
+    {<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: <span class="str">"Got it."</span>},
+    {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"Input: 会议定在2025年6月5日下午3点\nOutput:"</span>},
+]
+<span class="cm"># → 模型几乎一定会输出: {"date":"2025-06-05","time":"15:00"}</span></code></pre>
+
+  <h3>4.4 Chain-of-Thought (CoT) —— 让 Agent 先想再做</h3>
+  <pre><code><span class="cm"># 直接让 LLM 做决策 → 容易出错</span>
+<span class="str">"Should I use tool A or tool B for this task? Answer with just the tool name."</span>
+
+<span class="cm"># 让 LLM 先分析再决策 → 准确率翻倍</span>
+<span class="str">"""
+First, analyze the task:
+- What type of task is this? (code / search / data / creative)
+- What tools are available and relevant?
+- Which tool is the best fit?
+
+Then, output:
+THOUGHT: [your analysis]
+DECISION: [tool_name]
+"""</span></code></pre>
+
+  <h3>4.5 Agent Prompt 模板系统</h3>
+  <pre><code><span class="kw">import</span> jinja2
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+
+<span class="cm"># 用 Jinja2 做动态 prompt 拼接（比字符串拼接干净 100 倍）</span>
+AGENT_SYSTEM_TEMPLATE = jinja2.Template(<span class="str">"""
+You are {{ agent_name }}, a {{ agent_role }}.
+
+## Current Context
+- Date: {{ current_date }}
+- OS: {{ os_info }}
+- Working Directory: {{ workdir }}
+{% if tools %}
+## Available Tools
+{% for tool in tools %}
+- {{ tool.name }}: {{ tool.description }}
+{% endfor %}
+{% endif %}
+
+## Rules
+{% for rule in rules %}
+{{ loop.index }}. {{ rule }}
+{% endfor %}
+
+## Memory
+{% if memories %}
+{% for mem in memories %}
+- {{ mem }}
+{% endfor %}
+{% else %}
+(No relevant memories)
+{% endif %}
+"""</span>)
+
+system_prompt = AGENT_SYSTEM_TEMPLATE.render(
+    agent_name=<span class="str">"CodeBot"</span>,
+    agent_role=<span class="str">"terminal coding assistant"</span>,
+    current_date=datetime.now().strftime(<span class="str">"%Y-%m-%d %H:%M"</span>),
+    os_info=<span class="str">"Windows 10, Python 3.11"</span>,
+    workdir=<span class="str">"/home/user/project"</span>,
+    tools=[{<span class="str">"name"</span>: <span class="str">"search"</span>, <span class="str">"description"</span>: <span class="str">"Search codebase"</span>}],
+    rules=[
+        <span class="str">"Always use absolute paths"</span>,
+        <span class="str">"Never overwrite files without confirmation"</span>,
+        <span class="str">"Report errors in Chinese"</span>,
+    ],
+    memories=[<span class="str">"User prefers concise output"</span>, <span class="str">"Project uses pytest"</span>],
+)</code></pre>
+
+  <h3>4.6 结构化 Prompt 的 Token 效率</h3>
+  <table>
+    <tr><th>写法</th><th>Token 数</th><th>模型理解度</th></tr>
+    <tr><td>"你应该帮助用户，回答问题..."</td><td>~8</td><td>模糊</td></tr>
+    <tr><td>"Role: assistant. Task: answer questions. Language: Chinese."</td><td>~12</td><td>清晰</td></tr>
+    <tr><td>用 XML/Markdown 结构化分段</td><td>~18（多开销）</td><td>最清晰</td></tr>
+  </table>
+  <div class="callout good">
+    <strong>Agent 的黄金规则：</strong>宁可多用 20 个 token 把 instruction 写清楚，也别省 token 导致 LLM 误判。一个误判的 tool call 可能浪费几百 token。
+  </div>
+</section>
+
+<!-- ═══════════ SECTION 5: Token 计算与成本优化 ═══════════ -->
+<section class="section" id="s5">
+  <h2>
+    <span class="s-num" style="background:var(--pink); color:#fff;">5</span>
+    Token 计算与成本优化
+  </h2>
+  <p class="subtitle">Agent 跑起来后，Token 成本是最大的运营开销。精确计算、精细控制、不断优化。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-s5" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-s5" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>5.1 Token 预算模型</h3>
+  <div class="diagram">上下文窗口 (Context Window) = 一个请求能容纳的所有 token
+┌────────────────────────────────────────────┐
+│  System Prompt    │ ~500 tokens   (固定)   │
+│  Tools Definition │ ~300 tokens   (固定)   │
+│  Memory/RAG       │ ~1000 tokens  (动态)   │
+│  History          │ ~2000 tokens  (滑动)   │
+│  User Input       │ ~200 tokens   (每次新)  │
+│────────────────────────────────────────────│
+│  已用 Context:     ~4000 tokens            │
+│  Max Output:       floor(8192 - 4000) = 4092 │
+│  ■■■■■■■■■■■■■■■■■□□□□□□□□□□□□□□□□□□□□□  │
+│  已用 49%                                   │
+└────────────────────────────────────────────┘
+
+如果 max_tokens 设置超过可用的输出空间，API 会报错（400 context_length_exceeded）</div>
+
+  <h3>5.2 精确 Token 计数</h3>
+  <pre><code><span class="kw">import</span> tiktoken
+
+<span class="kw">class</span> <span class="tp">TokenCounter</span>:
+    <span class="str">"""支持多 Provider 的精确 token 计数"""</span>
+
+    ENCODINGS = {
+        <span class="str">"gpt-4o"</span>: <span class="str">"o200k_base"</span>,
+        <span class="str">"gpt-4"</span>: <span class="str">"cl100k_base"</span>,
+        <span class="str">"gpt-3.5-turbo"</span>: <span class="str">"cl100k_base"</span>,
+    }
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, model: <span class="tp">str</span> = <span class="str">"gpt-4o-mini"</span>):
+        enc_name = <span class="kw">self</span>.ENCODINGS.get(model, <span class="str">"cl100k_base"</span>)
+        <span class="kw">self</span>.enc = tiktoken.get_encoding(enc_name)
+        <span class="kw">self</span>.model = model
+
+    <span class="kw">def</span> <span class="fn">count</span>(<span class="kw">self</span>, text: <span class="tp">str</span>) -> <span class="tp">int</span>:
+        <span class="kw">return</span> <span class="bu">len</span>(<span class="kw">self</span>.enc.encode(text))
+
+    <span class="kw">def</span> <span class="fn">count_messages</span>(<span class="kw">self</span>, messages: <span class="tp">list</span>) -> <span class="tp">int</span>:
+        <span class="str">"""仿 OpenAI 的 token 计算（含 3 token/message 开销）"""</span>
+        total = <span class="num">0</span>
+        <span class="kw">for</span> msg <span class="kw">in</span> messages:
+            total += <span class="num">3</span>  <span class="cm"># message overhead</span>
+            <span class="kw">for</span> key, value <span class="kw">in</span> msg.items():
+                total += <span class="kw">self</span>.count(<span class="bu">str</span>(value))
+        total += <span class="num">3</span>  <span class="cm"># reply priming</span>
+        <span class="kw">return</span> total
+
+    <span class="kw">def</span> <span class="fn">will_fit</span>(<span class="kw">self</span>, messages: <span class="tp">list</span>, max_output: <span class="tp">int</span>,
+               context_window: <span class="tp">int</span> = <span class="num">128000</span>) -> <span class="tp">bool</span>:
+        <span class="kw">return self</span>.count_messages(messages) + max_output <= context_window</code></pre>
+
+  <h3>5.3 滑动窗口裁剪 —— Agent 长会话的必备技能</h3>
+  <pre><code><span class="kw">class</span> <span class="tp">SlidingWindowTrimmer</span>:
+    <span class="str">"""在 token 预算内保留最重要的消息"""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, max_input_tokens=<span class="num">6000</span>):
+        <span class="kw">self</span>.max_input = max_input_tokens
+        <span class="kw">self</span>.counter = TokenCounter()
+
+    <span class="kw">def</span> <span class="fn">trim</span>(<span class="kw">self</span>, messages: <span class="tp">list</span>) -> <span class="tp">list</span>:
+        <span class="str">"""保留 system + 最后 N 条消息，中间切掉"""</span>
+        <span class="kw">if self</span>.counter.count_messages(messages) <= <span class="kw">self</span>.max_input:
+            <span class="kw">return</span> messages
+
+        result = []
+        <span class="cm"># 1. System prompt 永远保留（通常是 messages[0]）</span>
+        system_msgs = [m <span class="kw">for</span> m <span class="kw">in</span> messages <span class="kw">if</span> m[<span class="str">"role"</span>] == <span class="str">"system"</span>]
+        result.extend(system_msgs)
+
+        <span class="cm"># 2. 从后往前加非 system 消息，直到 token 超限</span>
+        remaining = messages[<span class="bu">len</span>(system_msgs):]
+        tail = []
+        <span class="kw">for</span> msg <span class="kw">in</span> <span class="bu">reversed</span>(remaining):
+            candidate = [msg] + tail + result
+            <span class="kw">if self</span>.counter.count_messages(candidate) <= <span class="kw">self</span>.max_input:
+                tail.insert(<span class="num">0</span>, msg)
+            <span class="kw">else</span>:
+                <span class="kw">break</span>
+
+        <span class="kw">return</span> result + tail</code></pre>
+
+  <h3>5.4 成本追踪系统</h3>
+  <pre><code><span class="kw">from</span> datetime <span class="kw">import</span> datetime
+<span class="kw">import</span> json
+
+<span class="kw">class</span> <span class="tp">CostTracker</span>:
+    <span class="str">"""每次 LLM 调用的成本记录"""</span>
+
+    PRICING = {  <span class="cm"># $/1M tokens</span>
+        <span class="str">"gpt-4o"</span>: (<span class="num">2.50</span>, <span class="num">10.00</span>),
+        <span class="str">"gpt-4o-mini"</span>: (<span class="num">0.15</span>, <span class="num">0.60</span>),
+    }
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>):
+        <span class="kw">self</span>.records = []
+
+    <span class="kw">def</span> <span class="fn">record</span>(<span class="kw">self</span>, model: <span class="tp">str</span>, input_tokens: <span class="tp">int</span>, output_tokens: <span class="tp">int</span>):
+        in_price, out_price = <span class="kw">self</span>.PRICING.get(
+            model.split(<span class="str">"-20"</span>)[<span class="num">0</span>], (<span class="num">0</span>, <span class="num">0</span>)
+        )
+        cost = (input_tokens * in_price + output_tokens * out_price) / <span class="num">1_000_000</span>
+        <span class="kw">self</span>.records.append({
+            <span class="str">"time"</span>: datetime.now().isoformat(),
+            <span class="str">"model"</span>: model,
+            <span class="str">"input_tokens"</span>: input_tokens,
+            <span class="str">"output_tokens"</span>: output_tokens,
+            <span class="str">"cost_usd"</span>: <span class="bu">round</span>(cost, <span class="num">6</span>),
+        })
+
+    <span class="kw">def</span> <span class="fn">summary</span>(<span class="kw">self</span>) -> <span class="tp">dict</span>:
+        total_cost = <span class="bu">sum</span>(r[<span class="str">"cost_usd"</span>] <span class="kw">for</span> r <span class="kw">in</span> <span class="kw">self</span>.records)
+        total_calls = <span class="bu">len</span>(<span class="kw">self</span>.records)
+        <span class="kw">return</span> {
+            <span class="str">"total_calls"</span>: total_calls,
+            <span class="str">"total_cost"</span>: <span class="bu">round</span>(total_cost, <span class="num">4</span>),
+            <span class="str">"avg_cost_per_call"</span>: <span class="bu">round</span>(total_cost / total_calls, <span class="num">6</span>) <span class="kw">if</span> total_calls <span class="kw">else</span> <span class="num">0</span>,
+        }</code></pre>
+
+  <h3>5.5 省钱实战技巧</h3>
+  <table>
+    <tr><th>技巧</th><th>效果</th><th>代价</th></tr>
+    <tr><td><strong>模型降级链</strong><br>gpt-4o → gpt-4o-mini → deepseek</td><td>成本降 10~50×</td><td>复杂任务质量可能下降</td></tr>
+    <tr><td><strong>缓存 System Prompt</strong><br>OpenAI 支持 prompt caching (prefix match)</td><td>Input 成本减半</td><td>只有 openai/anthropic 支持</td></tr>
+    <tr><td><strong>截断长历史</strong><br>滑动窗口裁剪，只保留最近 N 轮</td><td>每次请求省几千 token</td><td>Agent 可能丢失早期上下文</td></tr>
+    <tr><td><strong>先搜索再生成</strong><br>RAG 检索相关片段放进 context，而不是全量历史</td><td>Context 更精准</td><td>需要向量检索基础设施</td></tr>
+    <tr><td><strong>最小化工具定义</strong><br>排除当前场景用不到的工具</td><td>省 50~200 token/次</td><td>工具定义需要动态拼装</td></tr>
+    <tr><td><strong>批量处理</strong><br>用 Batch API (OpenAI 50% off)</td><td>成本减半</td><td>非实时，最多等 24h</td></tr>
+  </table>
+</section>
+
+<!-- ═══════════ SECTION 6: 结构化输出 ═══════════ -->
+<section class="section" id="s6">
+  <h2>
+    <span class="s-num" style="background:var(--cyan); color:#0d1117;">6</span>
+    结构化输出
+  </h2>
+  <p class="subtitle">Agent 不能依赖 LLM 的「自由发挥」。让 LLM 返回稳定的结构化数据，是所有 downstream logic（工具调用、状态机、多 Agent 通信）的根基。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-s6" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-s6" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>6.1 四种结构化输出方案对比</h3>
+  <table>
+    <tr><th>方案</th><th>可靠性</th><th>性能</th><th>适用场景</th></tr>
+    <tr><td><strong>JSON Mode</strong><br><code>response_format={"type":"json_object"}</code></td><td>⭐⭐⭐⭐</td><td>快</td><td>简单结构（分类、提取），需在 prompt 指定 JSON schema</td></tr>
+    <tr><td><strong>Structured Outputs</strong><br><code>response_format={"type":"json_schema",...}</code></td><td>⭐⭐⭐⭐⭐</td><td>快</td><td>复杂结构，严格遵循给定 JSON Schema（OpenAI 新功能）</td></tr>
+    <tr><td><strong>Tool Calling</strong><br>定义 function + parameters</td><td>⭐⭐⭐⭐⭐</td><td>稍慢</td><td>需要模型选择 + 填充参数的场景，输出自然是结构化</td></tr>
+    <tr><td><strong>Few-Shot + 正则</strong><br>在 prompt 给例子，后端正则解析</td><td>⭐⭐⭐</td><td>最快</td><td>简单分类/路由，极低成本（适用于不支持 JSON mode 的模型）</td></tr>
+  </table>
+
+  <h3>6.2 OpenAI Structured Outputs (JSON Schema) —— 最新最可靠</h3>
+  <pre><code><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+<span class="kw">from</span> typing <span class="kw">import</span> Literal, Optional
+
+<span class="kw">class</span> <span class="tp">CodeReviewResult</span>(BaseModel):
+    <span class="str">"""用 Pydantic 定义输出结构 → 自动生成 JSON Schema"""</span>
+    status: Literal[<span class="str">"pass"</span>, <span class="str">"fail"</span>, <span class="str">"needs_improvement"</span>]
+    summary: <span class="tp">str</span>
+    issues: <span class="tp">list</span>[<span class="tp">str</span>] = []
+    score: <span class="tp">int</span>  <span class="cm"># 0-100</span>
+
+    <span class="kw">class</span> <span class="tp">Severity</span>(BaseModel):
+        critical: <span class="tp">int</span> = <span class="num">0</span>
+        major: <span class="tp">int</span> = <span class="num">0</span>
+        minor: <span class="tp">int</span> = <span class="num">0</span>
+
+    severity: Severity
+
+response = client.chat.completions.create(
+    model=<span class="str">"gpt-4o-2024-08-06"</span>,  <span class="cm"># ★ 支持 Structured Outputs 的模型</span>
+    messages=[{<span class="str">"role"</span>: <span class="str">"system"</span>, <span class="str">"content"</span>: <span class="str">"Review code"</span>},
+              {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: code}],
+    response_format={
+        <span class="str">"type"</span>: <span class="str">"json_schema"</span>,
+        <span class="str">"json_schema"</span>: {
+            <span class="str">"name"</span>: <span class="str">"code_review"</span>,
+            <span class="str">"schema"</span>: CodeReviewResult.model_json_schema(),
+            <span class="str">"strict"</span>: <span class="kw">True</span>,  <span class="cm"># ★ 100% 符合 schema，否则报错</span>
+        }
+    }
+)
+
+result = CodeReviewResult.model_validate_json(
+    response.choices[<span class="num">0</span>].message.content
+)
+<span class="bu">print</span>(result.status)   <span class="cm"># "pass"</span>
+<span class="bu">print</span>(result.score)    <span class="cm"># 85</span></code></pre>
+
+  <div class="callout warn">
+    <strong>Structured Outputs 限制：</strong>
+    ① 只有部分模型支持（gpt-4o-2024-08-06 及以后版本）；② strict=true 时不允许 optional 字段、不允许 additionalProperties；③ 不支持 <code>minItems</code>/<code>maxItems</code> 约束（OpenAI 可能在后续版本添加）。
+  </div>
+
+  <h3>6.3 Tool Calling 作结构化输出</h3>
+  <p>Tool Calling 本质是「让 LLM 以函数参数形式返回结构化数据」。对于不支持 JSON Schema 的模型（如 DeepSeek），这就是最好的结构化方案。</p>
+
+  <pre><code>response = client.chat.completions.create(
+    model=<span class="str">"deepseek-chat"</span>,
+    messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"Review this code:\n\n"</span> + code}],
+    tools=[{
+        <span class="str">"type"</span>: <span class="str">"function"</span>,
+        <span class="str">"function"</span>: {
+            <span class="str">"name"</span>: <span class="str">"submit_review"</span>,
+            <span class="str">"description"</span>: <span class="str">"Submit a code review"</span>,
+            <span class="str">"parameters"</span>: {
+                <span class="str">"type"</span>: <span class="str">"object"</span>,
+                <span class="str">"properties"</span>: {
+                    <span class="str">"status"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>, <span class="str">"enum"</span>: [<span class="str">"pass"</span>, <span class="str">"fail"</span>]},
+                    <span class="str">"score"</span>: {<span class="str">"type"</span>: <span class="str">"integer"</span>, <span class="str">"minimum"</span>: <span class="num">0</span>, <span class="str">"maximum"</span>: <span class="num">100</span>},
+                    <span class="str">"issues"</span>: {<span class="str">"type"</span>: <span class="str">"array"</span>, <span class="str">"items"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>}},
+                },
+                <span class="str">"required"</span>: [<span class="str">"status"</span>, <span class="str">"score"</span>],
+            }
+        }
+    }],
+    tool_choice={<span class="str">"type"</span>: <span class="str">"function"</span>, <span class="str">"function"</span>: {<span class="str">"name"</span>: <span class="str">"submit_review"</span>}},
+)
+
+tool_call = response.choices[<span class="num">0</span>].message.tool_calls[<span class="num">0</span>]
+review_data = json.loads(tool_call.function.arguments)
+<span class="bu">print</span>(review_data)  <span class="cm"># {"status": "pass", "score": 85, "issues": []}</span></code></pre>
+
+  <h3>6.4 JSON Mode 陷阱与解决方案</h3>
+  <pre><code><span class="cm"># ❌ 陷阱: JSON 被 markdown 代码块包裹</span>
+<span class="cm"># LLM 返回: ```json\n{"status":"ok"}\n``` ← 不是纯 JSON！</span>
+
+<span class="kw">def</span> <span class="fn">safe_json_parse</span>(raw: <span class="tp">str</span>) -> <span class="tp">dict</span>:
+    <span class="str">"""鲁棒的 JSON 解析 —— 应对各种 LLM 输出"""</span>
+    raw = raw.strip()
+
+    <span class="cm"># 1. 去掉 markdown 代码块</span>
+    <span class="kw">if</span> raw.startswith(<span class="str">"```"</span>):
+        raw = raw.split(<span class="str">"\n"</span>, <span class="num">1</span>)[<span class="num">1</span>]  <span class="cm"># 去掉第一行 ```json</span>
+        <span class="kw">if</span> raw.endswith(<span class="str">"```"</span>):
+            raw = raw[:-<span class="num">3</span>]
+
+    <span class="cm"># 2. 提取第一个 JSON 对象/数组</span>
+    <span class="kw">import</span> re
+    match = re.search(<span class="str">r'(\{.*\}|\[.*\])'</span>, raw, re.DOTALL)
+    <span class="kw">if</span> match:
+        raw = match.group(<span class="num">1</span>)
+
+    <span class="cm"># 3. 修复常见错误</span>
+    raw = re.sub(<span class="str">r',\s*}'</span>, <span class="str">'}'</span>,  raw)  <span class="cm"># trailing comma</span>
+    raw = re.sub(<span class="str">r',\s*]'</span>, <span class="str">']'</span>,  raw)  <span class="cm"># trailing comma in array</span>
+
+    <span class="kw">return</span> json.loads(raw)</code></pre>
+
+  <div class="callout good">
+    <strong>最佳实践：</strong>
+    OpenAI → 优先用 <code>response_format={"type":"json_schema"}</code> (strict=true)；<br>
+    DeepSeek / 其他 → 用 <code>tool_choice</code> 强制 tool call；<br>
+    不支持 tool calling 的模型 → <code>response_format={"type":"json_object"}</code> + prompt 指定 schema + 后端 safe_json_parse。
+  </div>
+
+  <!-- 承上启下 -->
+  <div class="callout">
+    <strong>阶段 2 → 阶段 3 的衔接：</strong><br>
+    有了本阶段的多 Provider 统一调用 + 结构化输出能力，阶段 3 将在此基础上构建 <strong>Tool Calling 循环</strong>（ReAct 模式）——让 LLM 不再只输出文本，而是能自主决定调用什么工具、如何处理结果、何时停止。<br><br>
+    <strong>关键前置知识自查：</strong>① 能否独立封装一个支持 OpenAI/Anthropic/DeepSeek 的异步客户端？② 能否精确计算一次调用的 token 和成本？③ 能否用 Pydantic + Structured Outputs 让 LLM 返回严格 JSON？如果都能答「是」，阶段 3 可以开始了。
+  </div>
+</section>
+
+<!-- ═══════════ 综合实践项目 ═══════════ -->
+<section class="section" id="practice" style="border-bottom: none;">
+  <h2>
+    <span class="s-num" style="background:var(--green); color:#fff;">🏗</span>
+    综合实践：多 Provider LLM 客户端库
+  </h2>
+  <p class="subtitle">整合本阶段全部知识，构建一个生产可用的 LLM 客户端库。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-practice" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-practice" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>项目结构</h3>
+  <pre><code>llm-client/
+├── core/
+│   ├── __init__.py
+│   ├── types.py           <span class="cm"># LLMMessage, LLMResponse, LLMStreamChunk</span>
+│   ├── base.py            <span class="cm"># BaseLLMProvider 抽象类</span>
+│   └── router.py          <span class="cm"># ProviderRouter 动态路由</span>
+├── providers/
+│   ├── __init__.py
+│   ├── openai_provider.py
+│   ├── anthropic_provider.py
+│   └── deepseek_provider.py
+├── utils/
+│   ├── token_counter.py   <span class="cm"># Token 计数 + 窗口裁剪</span>
+│   ├── cost_tracker.py    <span class="cm"># 成本追踪</span>
+│   ├── prompt_templates/  <span class="cm"># Jinja2 模板</span>
+│   └── json_parser.py     <span class="cm"># 鲁棒 JSON 解析</span>
+├── config.py              <span class="cm"># 环境变量 + API Key 管理</span>
+├── requirements.txt
+└── README.md</code></pre>
+
+  <h3>功能清单（毕业标准）</h3>
+  <table>
+    <tr><th>#</th><th>功能</th><th>验收标准</th></tr>
+    <tr><td>1</td><td>统一 chat 接口</td><td>同一段代码可以切换 openai/anthropic/deepseek</td></tr>
+    <tr><td>2</td><td>流式 + 非流式</td><td>chat() 和 chat_stream() 都正常工作</td></tr>
+    <tr><td>3</td><td>自动重试</td><td>429/5xx 自动指数退避重试 3 次</td></tr>
+    <tr><td>4</td><td>Token 管理</td><td>精确计数 + 滑动窗口裁剪 + context overflow 提前拦截</td></tr>
+    <tr><td>5</td><td>成本追踪</td><td>每次调用的 token 和 $ 记录，支持 summary 报表</td></tr>
+    <tr><td>6</td><td>结构化输出</td><td>支持 JSON Schema / Tool Calling，自带 safe_json_parse</td></tr>
+    <tr><td>7</td><td>模型路由</td><td>根据 task_type 自动选择 Provider + 模型</td></tr>
+    <tr><td>8</td><td>Prompt 模板</td><td>Jinja2 动态拼装 system prompt，Context Injection</td></tr>
+  </table>
+
+  <div class="callout good">
+    <strong>阶段 2 毕业标准：</strong>
+    完成以上项目后，你应该能够 ——<br>
+    ① 理解 Transformer 基础和 token 化机制，知道 LLM 的「能力边界」<br>
+    ② 熟练调用 OpenAI API（含 streaming、vision、logprobs、structured outputs）<br>
+    ③ 封装多 Provider 统一客户端，处理各家 API 差异<br>
+    ④ 写出高质量的 few-shot prompt 和 Chain-of-Thought 指令<br>
+    ⑤ 精确管理 token 预算和成本<br>
+    ⑥ 用 Pydantic + JSON Schema / Tool Calling 拿回可靠的结构化数据<br>
+    ⑦ 为阶段 3 的 Agent Loop (ReAct / Tool Calling 循环) 打好调用层基础
+  </div>
+</section>
+
+<!-- ═══════════ NAV FOOTER ═══════════ -->
+<div class="nav-footer">
+  <a href="file:///D:/Hermes/workspace/agent-backend-learning/01-http-websocket-sse/phase1.html">
+    ← 阶段 1：后端基础 & 网络协议
+  </a>
+  <a href="file:///D:/Hermes/workspace/agent-backend-learning/03-agent-core/phase3.html" style="color:var(--accent);">
+    阶段 3：Agent 核心架构 →
+  </a>
+</div>
+
+</main>
+</div><!-- /layout -->
+
+<script>
+const SECTION_IDS = ['s1','s2','s3','s4','s5','s6','practice'];
+const TOTAL = SECTION_IDS.length;
+
+function updateProgress() {
+  let done = 0;
+  SECTION_IDS.forEach(id => {
+    const cb = document.getElementById('check-' + id);
+    const badge = document.getElementById('badge-' + id);
+    if (cb && cb.checked) {
+      done++;
+      if (badge) { badge.textContent = '✓'; badge.className = 'badge done'; }
+    } else {
+      if (badge) { badge.textContent = ''; badge.className = 'badge'; }
+    }
+  });
+  const pct = (done / TOTAL * 100).toFixed(0) + '%';
+  document.getElementById('progress-fill').style.width = pct;
+  document.getElementById('progress-text').textContent = done + '/' + TOTAL;
+  const state = {};
+  SECTION_IDS.forEach(id => {
+    const cb = document.getElementById('check-' + id);
+    if (cb) state[id] = cb.checked;
+  });
+  localStorage.setItem('agent-phase2-progress', JSON.stringify(state));
+}
+
+function loadProgress() {
+  const saved = localStorage.getItem('agent-phase2-progress');
+  if (!saved) return;
+  const state = JSON.parse(saved);
+  SECTION_IDS.forEach(id => {
+    if (state[id] !== undefined) {
+      const cb = document.getElementById('check-' + id);
+      if (cb) cb.checked = state[id];
+    }
+  });
+  updateProgress();
+}
+
+function updateActiveNav() {
+  const sections = SECTION_IDS.map(id => document.getElementById(id));
+  let current = SECTION_IDS[0];
+  sections.forEach((sec, i) => {
+    if (!sec) return;
+    const rect = sec.getBoundingClientRect();
+    if (rect.top <= 150) current = SECTION_IDS[i];
+  });
+  document.querySelectorAll('.sidebar nav a').forEach(a => {
+    a.classList.remove('active');
+    if (a.getAttribute('data-section') === current) a.classList.add('active');
+  });
+}
+
+window.addEventListener('scroll', updateActiveNav);
+window.addEventListener('load', () => { loadProgress(); updateActiveNav(); });
+</script>
+</body>
+</html>

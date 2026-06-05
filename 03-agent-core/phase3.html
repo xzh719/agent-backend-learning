@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段3：Agent 核心架构 —— AI Agent 后端学习</title>
+<style>
+  :root { --bg:#0d1117; --bg-card:#161b22; --bg-hover:#1c2129; --bg-code:#0d1117; --border:#30363d; --text:#c9d1d9; --text-muted:#8b949e; --accent:#58a6ff; --green:#3fb950; --orange:#d2991d; --purple:#a371f7; --red:#f85149; --cyan:#39d2c0; --pink:#db61a2; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+  .layout { display:flex; min-height:100vh; }
+  .sidebar { width: 280px; flex-shrink:0; background: var(--bg-card); border-right: 1px solid var(--border); padding: 2rem 1.5rem; position: sticky; top:0; height:100vh; overflow-y:auto; }
+  .sidebar h3 { font-size: 0.85rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.8rem; }
+  .sidebar .phase-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem; }
+  .sidebar nav { display:flex; flex-direction:column; gap: 0.3rem; }
+  .sidebar nav a { color: var(--text-muted); text-decoration: none; font-size: 0.88rem; padding: 0.45rem 0.7rem; border-radius: 6px; transition: all 0.15s; border-left: 2px solid transparent; }
+  .sidebar nav a:hover { color: var(--text); background: var(--bg-hover); }
+  .sidebar nav a.active { color: var(--accent); background: rgba(88,166,255,0.08); border-left-color: var(--accent); }
+  .sidebar .badge { display: inline-block; font-size: 0.7rem; padding: 0.12rem 0.4rem; border-radius: 4px; margin-left: 0.3rem; background: var(--border); color: var(--text-muted); }
+  .sidebar .badge.done { background: rgba(63,185,80,0.15); color: var(--green); }
+  .main { flex:1; padding: 2.5rem 3rem; max-width: 960px; }
+  .section { margin-bottom: 4rem; padding-bottom: 3rem; border-bottom: 1px solid var(--border); }
+  .section:last-child { border-bottom: none; }
+  .section h2 { font-size: 1.65rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.7rem; }
+  .section .s-num { width: 36px; height: 36px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; flex-shrink: 0; }
+  .section .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.8rem; }
+  h3 { font-size: 1.2rem; margin: 1.8rem 0 0.7rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
+  h4 { font-size: 1rem; margin: 1.4rem 0 0.5rem; color: var(--accent); }
+  p { margin-bottom: 0.8rem; color: var(--text-muted); }
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; color: var(--text-muted); }
+  li { margin-bottom: 0.25rem; }
+  pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 1.2rem 1.4rem; margin: 1rem 0 1.5rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; font-family: 'JetBrains Mono','Fira Code','Cascadia Code','Consolas',monospace; }
+  pre code { color: #c9d1d9; }
+  code { font-family: 'JetBrains Mono','Fira Code','Cascadia Code','Consolas',monospace; font-size: 0.85em; background: rgba(110,118,129,0.15); padding: 0.15em 0.4em; border-radius: 4px; }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  .kw { color:#ff7b72; } .str { color:#a5d6ff; } .cm { color:#8b949e; font-style:italic; } .fn { color:#d2a8ff; } .num { color:#79c0ff; } .op { color:#ff7b72; } .tp { color:#7ee787; } .de { color:#d2a8ff; } .bu { color:#79c0ff; }
+  .callout { border-left: 3px solid var(--accent); background: rgba(88,166,255,0.06); padding: 0.8rem 1.2rem; border-radius: 0 6px 6px 0; margin: 1.2rem 0; font-size: 0.9rem; }
+  .callout.warn { border-color: var(--orange); background: rgba(210,153,29,0.06); }
+  .callout.good { border-color: var(--green); background: rgba(63,185,80,0.06); }
+  .callout strong { color: var(--text); }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--accent); font-weight: 600; white-space: nowrap; }
+  td { color: var(--text-muted); }
+  .diagram { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 1.2rem; margin: 1rem 0; font-family: monospace; font-size: 0.82rem; white-space: pre; overflow-x: auto; color: var(--text-muted); line-height: 1.5; }
+  .conn-arrows { font-family: monospace; font-size: 0.82rem; color: var(--text-muted); background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0; overflow-x: auto; white-space: pre; line-height: 1.5; }
+  .nav-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); }
+  .nav-footer a { color: var(--accent); text-decoration: none; font-size: 0.9rem; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 6px; transition: all 0.15s; }
+  .nav-footer a:hover { background: var(--bg-hover); border-color: var(--accent); }
+  .progress { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.2rem; font-size: 0.85rem; color: var(--text-muted); }
+  .progress-bar { flex:1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.3s; }
+  @media (max-width:860px) { .layout { flex-direction: column; } .sidebar { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--border); padding: 1.2rem; } .sidebar nav { flex-direction: row; flex-wrap: wrap; } .main { padding: 1.5rem; } }
+  html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <h3>AI Agent 后端学习</h3>
+  <div class="phase-title">阶段 3：Agent 核心架构</div>
+  <div class="progress">
+    <span>进度</span>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <span id="progress-text">0/6</span>
+  </div>
+  <nav>
+    <a href="#s1" data-section="s1">1. Tool Calling 深度 <span class="badge" id="badge-s1"></span></a>
+    <a href="#s2" data-section="s2">2. ReAct 循环引擎 <span class="badge" id="badge-s2"></span></a>
+    <a href="#s3" data-section="s3">3. 任务规划与分解 <span class="badge" id="badge-s3"></span></a>
+    <a href="#s4" data-section="s4">4. 状态机与流程控制 <span class="badge" id="badge-s4"></span></a>
+    <a href="#s5" data-section="s5">5. MCP 协议集成 <span class="badge" id="badge-s5"></span></a>
+    <a href="#s6" data-section="s6">6. 多 Agent 协作 <span class="badge" id="badge-s6"></span></a>
+    <a href="#practice" data-section="practice" style="margin-top:0.8rem; color:var(--green);">🏗 综合实践项目</a>
+  </nav>
+</aside>
+
+<main class="main">
+
+<div style="margin-bottom:3rem;">
+  <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:0.3rem;">← 回到 <a href="file:///D:/Hermes/workspace/agent-backend-roadmap.html" style="color:var(--cyan);">总路线图</a></p>
+  <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:0.3rem;">← 上一阶段 <a href="file:///D:/Hermes/workspace/agent-backend-learning/02-llm-api-integration/phase2.html" style="color:var(--cyan);">阶段2：LLM 基础 & API 集成</a></p>
+  <h1 style="font-size:2rem; background:linear-gradient(90deg,var(--accent),var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">
+    阶段 3：Agent 核心架构
+  </h1>
+  <p style="color:var(--text-muted);">Tool Calling、ReAct 循环、任务规划、MCP 协议、多 Agent 协作 —— Agent 的灵魂所在</p>
+  <p style="color:var(--text-muted); font-size:0.85rem;">⏱ 预计 3 周 | 📚 6 个核心主题 | 🎯 构建完整的单 Agent → 多 Agent 系统</p>
+</div>
+
+<div class="callout">
+  <strong>学习路径逻辑：</strong>
+  前两个阶段搭建了通信层和 LLM 调用层。现在我们要让 LLM「动起来」——
+  先用 <strong>Tool Calling</strong> 让 LLM 能操作外部世界；
+  再用 <strong>ReAct 循环</strong> 让 LLM 自主「思考→行动→观察→再思考」；
+  然后 <strong>任务规划</strong> 让 Agent 处理复杂的多步任务；
+  加上 <strong>状态机</strong> 保证流程稳健；
+  引入 <strong>MCP 协议</strong> 标准化工具连接；
+  最后探索 <strong>多 Agent 协作</strong> 让多个 Agent 分工合作。
+</div>
+
+<!-- ═══════ SECTION 1: Tool Calling ═══════ -->
+<section class="section" id="s1">
+  <h2><span class="s-num" style="background:var(--accent); color:#fff;">1</span>Tool Calling 深度解析</h2>
+  <p class="subtitle">Tool Calling 是 Agent 的「手」——让 LLM 从纯文本生成器变成能操作外部世界的执行者。掌握它，就掌握了 Agent 的核心能力。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-s1" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-s1" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>1.1 Tool Calling 完整流程</h3>
+  <div class="diagram">用户: "北京今天天气如何？"
+  │
+  ▼
+┌─ Agent Loop ──────────────────────────────────────┐
+│ Step 1: LLM 推理 → 决定调 tool                    │
+│   messages = [user: "北京今天天气如何？"]           │
+│   tools    = [{name:"get_weather", params:{city}}]  │
+│                                                      │
+│ Step 2: LLM 返回 tool_call (不是文本回复!)          │
+│   tool_calls = [{                                    │
+│     id: "call_abc123",                               │
+│     function: {name: "get_weather", arguments: {city: "北京"}}│
+│   }]                                                 │
+│                                                      │
+│ Step 3: Agent 后端执行工具                           │
+│   result = await get_weather("北京")                  │
+│   → "北京今天晴，22°C，湿度 45%"                     │
+│                                                      │
+│ Step 4: 把结果拼回 messages，再次调 LLM              │
+│   messages.append(tool_result)                       │
+│   → LLM 生成最终回复: "北京今天天气晴朗，22°C..."   │
+└────────────────────────────────────────────────────┘</div>
+
+  <h3>1.2 工具定义规范</h3>
+  <pre><code><span class="cm"># OpenAI Function Calling 的标准工具定义</span>
+TOOLS = [
+    {
+        <span class="str">"type"</span>: <span class="str">"function"</span>,
+        <span class="str">"function"</span>: {
+            <span class="str">"name"</span>: <span class="str">"get_weather"</span>,
+            <span class="str">"description"</span>: <span class="str">"获取指定城市的当前天气信息。返回温度、湿度、天气状况。"</span>,
+            <span class="str">"parameters"</span>: {
+                <span class="str">"type"</span>: <span class="str">"object"</span>,
+                <span class="str">"properties"</span>: {
+                    <span class="str">"city"</span>: {
+                        <span class="str">"type"</span>: <span class="str">"string"</span>,
+                        <span class="str">"description"</span>: <span class="str">"城市名称，如 '北京'、'上海'"</span>,
+                    },
+                    <span class="str">"unit"</span>: {
+                        <span class="str">"type"</span>: <span class="str">"string"</span>,
+                        <span class="str">"enum"</span>: [<span class="str">"celsius"</span>, <span class="str">"fahrenheit"</span>],
+                        <span class="str">"description"</span>: <span class="str">"温度单位"</span>,
+                    }
+                },
+                <span class="str">"required"</span>: [<span class="str">"city"</span>],
+            }
+        }
+    }
+]
+
+<span class="cm"># ★ 关键原则 ★</span>
+<span class="cm"># 1. description 是给 LLM 看的「使用说明书」，越清晰 LLM 越不容易误用</span>
+<span class="cm"># 2. enum 优于 string —— 约束越紧，模型越难出错</span>
+<span class="cm"># 3. required 字段要精确 —— LLM 有时会省略非 required 参数</span>
+<span class="cm"># 4. 工具名要有动词 —— "get_weather" 而非 "weather"</span></code></pre>
+
+  <h3>1.3 tool_choice 参数详解</h3>
+  <table>
+    <tr><th>值</th><th>含义</th><th>何时用</th></tr>
+    <tr><td><code>"auto"</code></td><td>LLM 自己决定是否调工具</td><td>默认，大多数情况</td></tr>
+    <tr><td><code>"none"</code></td><td>禁止调工具</td><td>只要纯文本回复时</td></tr>
+    <tr><td><code>"required"</code></td><td>必须调一个工具</td><td>结构化输出 / 强制行动</td></tr>
+    <tr><td><code>{"type":"function","function":{"name":"X"}}</code></td><td>指定必须调 X 工具</td><td>采集特定结构化数据</td></tr>
+  </table>
+  <div class="callout warn">
+    <strong>tool_choice="required" 的陷阱：</strong>
+    某些模型（DeepSeek、Groq）在 tool_choice="required" 但不需要调工具时，会「发明」工具调用（幻觉）。<strong>只在确实需要强制行动时才用 required。</strong>
+  </div>
+
+  <h3>1.4 并行 Tool Calling</h3>
+  <pre><code><span class="cm"># LLM 一次返回多个 tool_calls，互不依赖 → 并行执行</span>
+<span class="cm"># 用户: "比较一下北京和上海的天气"</span>
+
+response = client.chat.completions.create(
+    model=<span class="str">"gpt-4o"</span>,
+    messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"比较北京和上海今天的天气"</span>}],
+    tools=[weather_tool],
+)
+
+message = response.choices[<span class="num">0</span>].message
+<span class="kw">if</span> message.tool_calls:
+    <span class="cm"># 并行执行！两个天气查询互不依赖</span>
+    tasks = []
+    <span class="kw">for</span> tc <span class="kw">in</span> message.tool_calls:
+        args = json.loads(tc.function.arguments)
+        tasks.append(call_weather(args[<span class="str">"city"</span>]))
+    results = <span class="kw">await</span> asyncio.gather(*tasks)
+
+<span class="cm"># 然后把所有结果都拼回 messages 给 LLM 生成比较文本</span></code></pre>
+
+  <div class="callout">
+    <strong>判断能否并行：</strong>看 tool_calls 之间有无数据依赖。<br>
+    <code>get_weather(北京)</code> 和 <code>get_weather(上海)</code> → 无依赖，并行 ✅<br>
+    <code>search("error msg")</code> → <code>read_file(result[0].path)</code> → 有依赖，必须串行 ❌ 不能并行
+  </div>
+
+  <h3>1.5 工具执行的安全边界</h3>
+  <pre><code><span class="kw">class</span> <span class="tp">ToolExecutor</span>:
+    <span class="str">"""安全执行 LLM 返回的 tool calls"""</span>
+
+    ALLOWED_TOOLS = {<span class="str">"get_weather"</span>, <span class="str">"search"</span>, <span class="str">"read_file"</span>}  <span class="cm"># 白名单!</span>
+    MAX_TIMEOUT = <span class="num">30</span>   <span class="cm"># 秒</span>
+    MAX_RESULT_SIZE = <span class="num">50000</span>  <span class="cm"># 字节</span>
+
+    <span class="kw">async def</span> <span class="fn">execute</span>(<span class="kw">self</span>, tool_calls: <span class="tp">list</span>) -> <span class="tp">list</span>:
+        results = []
+        <span class="kw">for</span> tc <span class="kw">in</span> tool_calls:
+            func_name = tc.function.name
+            <span class="kw">if</span> func_name <span class="kw">not in</span> <span class="kw">self</span>.ALLOWED_TOOLS:
+                results.append({<span class="str">"error"</span>: <span class="str">f"Tool '</span>{func_name}<span class="str">' not allowed"</span>})
+                <span class="kw">continue</span>
+
+            <span class="kw">try</span>:
+                args = json.loads(tc.function.arguments)
+                <span class="kw">async with</span> asyncio.timeout(<span class="kw">self</span>.MAX_TIMEOUT):
+                    result = <span class="kw">await self</span>.registry[func_name](**args)
+                    <span class="cm"># 截断过大的结果</span>
+                    result_str = <span class="bu">str</span>(result)[:<span class="kw">self</span>.MAX_RESULT_SIZE]
+                    results.append({<span class="str">"tool_call_id"</span>: tc.id, <span class="str">"result"</span>: result_str})
+            <span class="kw">except</span> asyncio.TimeoutError:
+                results.append({<span class="str">"error"</span>: <span class="str">"Tool timeout"</span>})
+            <span class="kw">except</span> <span class="tp">Exception</span> <span class="kw">as</span> e:
+                results.append({<span class="str">"error"</span>: <span class="bu">str</span>(e)})
+        <span class="kw">return</span> results</code></pre>
+</section>
+
+<!-- ═══════ SECTION 2: ReAct 循环引擎 ═══════ -->
+<section class="section" id="s2">
+  <h2><span class="s-num" style="background:var(--green); color:#fff;">2</span>ReAct 循环引擎</h2>
+  <p class="subtitle">ReAct (Reasoning + Acting) 是 Agent 的标准运行模式。LLM 在「思考→行动→观察」的循环中自主推进任务，直到得出结论。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-s2" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-s2" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>2.1 ReAct 状态机</h3>
+  <div class="diagram">                    ┌──────────────────────┐
+                    │      START           │
+                    │  user sends message  │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+               ┌───→│    LLM REASONING     │
+               │    │  (Call Chat API)     │
+               │    └──────────┬───────────┘
+               │               │
+               │      ┌────────┴────────┐
+               │      │                 │
+               │    finish_reason    finish_reason
+               │    = "stop"         = "tool_calls"
+               │      │                 │
+               │      ▼                 ▼
+               │  ┌────────┐    ┌──────────────┐
+               │  │  DONE  │    │ EXECUTE TOOLS│
+               │  └────────┘    └──────┬───────┘
+               │                       │
+               │                       ▼
+               │              ┌──────────────────┐
+               │              │ ADD TOOL RESULTS │
+               │              │   to messages    │
+               │              └────────┬─────────┘
+               │                       │
+               └───────────────────────┘</div>
+
+  <h3>2.2 核心 Agent Loop 实现</h3>
+  <pre><code><span class="kw">class</span> <span class="tp">AgentLoop</span>:
+    <span class="str">"""一个完整的 ReAct Agent Loop"""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, llm, tools: <span class="tp">dict</span>, max_steps: <span class="tp">int</span> = <span class="num">15</span>):
+        <span class="kw">self</span>.llm = llm          <span class="cm"># BaseLLMProvider 实例</span>
+        <span class="kw">self</span>.tools = tools      <span class="cm"># {name: callable}</span>
+        <span class="kw">self</span>.max_steps = max_steps
+        <span class="kw">self</span>.messages = []
+
+    <span class="kw">async def</span> <span class="fn">run</span>(<span class="kw">self</span>, user_input: <span class="tp">str</span>, system_prompt: <span class="tp">str</span> = <span class="str">""</span>) -> <span class="tp">str</span>:
+        <span class="kw">self</span>.messages = []
+        <span class="kw">if</span> system_prompt:
+            <span class="kw">self</span>.messages.append(LLMMessage(role=<span class="str">"system"</span>, content=system_prompt))
+        <span class="kw">self</span>.messages.append(LLMMessage(role=<span class="str">"user"</span>, content=user_input))
+
+        <span class="kw">for</span> step <span class="kw">in</span> <span class="bu">range</span>(<span class="kw">self</span>.max_steps):
+            <span class="kw">self</span>.emit(<span class="str">"step"</span>, step)
+
+            <span class="cm"># 1. 调 LLM</span>
+            response = <span class="kw">await self</span>.llm.chat(
+                messages=<span class="kw">self</span>.messages,
+                tools=<span class="kw">self</span>._tool_definitions(),
+                temperature=<span class="num">0.3</span>,
+            )
+
+<span class="cm">            # 2. 判断结果类型</span>
+            <span class="kw">if</span> response.tool_calls:
+                <span class="kw">self</span>.emit(<span class="str">"tool_calls"</span>, response.tool_calls)
+
+                <span class="cm"># 3. 执行工具</span>
+                tool_results = <span class="kw">await self</span>._execute_tools(response.tool_calls)
+                <span class="kw">self</span>.emit(<span class="str">"tool_results"</span>, tool_results)
+
+                <span class="cm"># 4. 把 tool_call + tool_result 拼回消息</span>
+                <span class="kw">self</span>.messages.append(LLMMessage(
+                    role=<span class="str">"assistant"</span>,
+                    content=<span class="str">""</span>,
+                    tool_calls=response.tool_calls,
+                ))
+                <span class="kw">for</span> tr <span class="kw">in</span> tool_results:
+                    <span class="kw">self</span>.messages.append(LLMMessage(
+                        role=<span class="str">"tool"</span>,
+                        content=tr[<span class="str">"result"</span>],
+                        tool_call_id=tr[<span class="str">"tool_call_id"</span>],
+                    ))
+
+            <span class="kw">elif</span> response.content:
+                <span class="cm"># 纯文本回复 → Agent 结束</span>
+                <span class="kw">self</span>.emit(<span class="str">"done"</span>, response.content)
+                <span class="kw">return</span> response.content
+
+        <span class="cm"># 超过最大步数</span>
+        <span class="kw">raise</span> <span class="tp">RuntimeError</span>(<span class="str">f"Agent exceeded max steps (</span>{<span class="kw">self</span>.max_steps}<span class="str">)"</span>)
+
+    <span class="kw">def</span> <span class="fn">emit</span>(<span class="kw">self</span>, event_type, data=<span class="kw">None</span>):
+        <span class="str">"""事件钩子——前端 WebSocket/SSE 用这个推送进度"""</span>
+        <span class="bu">print</span>(<span class="str">f"[</span>{event_type}<span class="str">]"</span>, data)</code></pre>
+
+  <h3>2.3 关键设计决策</h3>
+  <table>
+    <tr><th>决策点</th><th>选项 A</th><th>选项 B</th><th>建议</th></tr>
+    <tr><td><strong>多轮后是否清空历史?</strong></td><td>保留全部 → context 越来越长</td><td>只保留当前循环 → 丢失上下文</td><td>滑动窗口裁剪（阶段 2 技术）</td></tr>
+    <tr><td><strong>Tool Call 失败怎么办?</strong></td><td>把 error 消息给 LLM 让它重试</td><td>直接终止报错</td><td>✅ A：LLM 可以自行纠正</td></tr>
+    <tr><td><strong>并行 tool_calls 还是串行?</strong></td><td>总是并行</td><td>总是串行</td><td>按依赖关系判断（见 1.4）</td></tr>
+    <tr><td><strong>temperature 设多少?</strong></td><td>0 → 确定性</td><td>0.3~0.5 → 有创造空间</td><td>Tool calling 阶段 0；最终回复 0.5~1</td></tr>
+    <tr><td><strong>max_steps 设多少?</strong></td><td>少 (3~5) → 简单任务</td><td>多 (15~30) → 复杂任务</td><td>按任务类型动态设</td></tr>
+  </table>
+
+  <h3>2.4 中断与恢复</h3>
+  <pre><code><span class="kw">class</span> <span class="tp">InterruptibleAgent</span>(AgentLoop):
+    <span class="str">"""用户可随时中断的 Agent"""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, *args, **kwargs):
+        <span class="kw">super</span>().__init__(*args, **kwargs)
+        <span class="kw">self</span>._cancelled = <span class="kw">False</span>
+
+    <span class="kw">def</span> <span class="fn">cancel</span>(<span class="kw">self</span>):
+        <span class="kw">self</span>._cancelled = <span class="kw">True</span>
+
+    <span class="kw">async def</span> <span class="fn">run</span>(<span class="kw">self</span>, user_input, system_prompt=<span class="str">""</span>):
+        <span class="kw">self</span>._cancelled = <span class="kw">False</span>
+        <span class="kw">for</span> step <span class="kw">in</span> <span class="bu">range</span>(<span class="kw">self</span>.max_steps):
+            <span class="kw">if self</span>._cancelled:
+                <span class="kw">return</span> <span class="str">"[CANCELLED BY USER]"</span>
+            <span class="cm"># ... rest of the loop ...</span>
+
+    <span class="kw">def</span> <span class="fn">checkpoint</span>(<span class="kw">self</span>) -> <span class="tp">dict</span>:
+        <span class="str">"""保存当前状态 → 可以恢复"""</span>
+        <span class="kw">return</span> {
+            <span class="str">"messages"</span>: <span class="kw">self</span>.messages,
+            <span class="str">"step"</span>: <span class="kw">self</span>.current_step,
+        }
+
+    <span class="kw">def</span> <span class="fn">restore</span>(<span class="kw">self</span>, checkpoint: <span class="tp">dict</span>):
+        <span class="kw">self</span>.messages = checkpoint[<span class="str">"messages"</span>]
+        <span class="kw">self</span>.current_step = checkpoint[<span class="str">"step"</span>]</code></pre>
+
+  <div class="callout good">
+    <strong>Agent Loop 的「秘密」：</strong>
+    整个 ReAct 循环没有任何 AI 魔法——就是普通代码：while 循环里调 LLM + 执行工具 + 拼消息。难点不在代码，而在于 ① 工具定义清晰度 ② 错误恢复策略 ③ context 管理 ④ 中断机制。
+  </div>
+</section>
+
+<!-- ═══════ SECTION 3: 任务规划 ═══════ -->
+<section class="section" id="s3">
+  <h2><span class="s-num" style="background:var(--orange); color:#fff;">3</span>任务规划与分解</h2>
+  <p class="subtitle">简单问题一问一答，复杂任务需要先规划再执行。Plan → Execute → Verify 三段式是生产级 Agent 的标准范式。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-s3" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-s3" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>3.1 两种规划策略</h3>
+  <div class="diagram"><span class="kw">Plan-and-Execute (计划先行):</span>
+User Input → Plan → [Task1, Task2, Task3] → Execute each → Verify → Done
+   ↑ 适合任务明确、步骤可枚举的场景
+   ↓ 缺点：计划错了就全错了，没有动态调整空间
+
+<span class="kw">ReAct (边想边做):</span>
+User Input → Think → Act → Observe → Think → Act → Observe → ... → Done
+   ↑ 适合开放性问题、需要探索的场景
+   ↓ 缺点：没有全局视角，可能走弯路
+
+<span class="kw">★ 最佳实践: Plan + ReAct 混合 —— 先出计划（Plan），执行时用 ReAct（允许动态调整）</span></div>
+
+  <h3>3.2 Plan Generator —— 用 LLM 生成执行计划</h3>
+  <pre><code><span class="kw">async def</span> <span class="fn">generate_plan</span>(task: <span class="tp">str</span>, llm) -> <span class="tp">list</span>[<span class="tp">dict</span>]:
+    <span class="str">"""让 LLM 把复杂任务拆解成可执行的步骤列表"""</span>
+    plan_response = <span class="kw">await</span> llm.chat(
+        messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">f"""Task: </span>{task}<span class="str">
+
+Break this task into steps. For each step, specify:
+1. What to do (action)
+2. What tool to use (tool) — one of: search, read_file, write_file, execute_python
+3. Expected output (expected)
+4. Dependencies (depends_on) — which step IDs must complete first
+
+Return as JSON array:
+[{{"id": 1, "action": "...", "tool": "...", "expected": "...", "depends_on": []}}]
+"""</span>}],
+        temperature=<span class="num">0.2</span>,
+        response_format={<span class="str">"type"</span>: <span class="str">"json_object"</span>},
+    )
+    <span class="kw">return</span> json.loads(plan_response.content)[<span class="str">"steps"</span>]</code></pre>
+
+  <h3>3.3 Plan Executor —— 按 DAG 执行步骤</h3>
+  <pre><code><span class="kw">class</span> <span class="tp">PlanExecutor</span>:
+    <span class="str">"""根据 DAG 依赖关系执行 Plan"""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, agent: AgentLoop):
+        <span class="kw">self</span>.agent = agent
+
+    <span class="kw">async def</span> <span class="fn">execute</span>(<span class="kw">self</span>, steps: <span class="tp">list</span>[<span class="tp">dict</span>]) -> <span class="tp">list</span>[<span class="tp">dict</span>]:
+        completed = {}  <span class="cm"># step_id → result</span>
+        pending = steps.copy()
+
+        <span class="kw">while</span> pending:
+            <span class="cm"># 找出所有依赖已满足的步骤</span>
+            ready = [
+                s <span class="kw">for</span> s <span class="kw">in</span> pending
+                <span class="kw">if</span> <span class="bu">all</span>(dep <span class="kw">in</span> completed <span class="kw">for</span> dep <span class="kw">in</span> s.get(<span class="str">"depends_on"</span>, []))
+            ]
+            <span class="kw">if not</span> ready:
+                <span class="kw">raise</span> <span class="tp">RuntimeError</span>(<span class="str">"Deadlock: no ready steps but tasks remain"</span>)
+
+            <span class="cm"># 并行执行所有 ready 步骤</span>
+            tasks = [<span class="kw">self</span>.agent.run(s[<span class="str">"action"</span>]) <span class="kw">for</span> s <span class="kw">in</span> ready]
+            results = <span class="kw">await</span> asyncio.gather(*tasks, return_exceptions=<span class="kw">True</span>)
+
+            <span class="kw">for</span> step, result <span class="kw">in</span> <span class="bu">zip</span>(ready, results):
+                <span class="kw">if</span> <span class="bu">isinstance</span>(result, <span class="tp">Exception</span>):
+                    completed[step[<span class="str">"id"</span>]] = {<span class="str">"error"</span>: <span class="bu">str</span>(result)}
+                <span class="kw">else</span>:
+                    completed[step[<span class="str">"id"</span>]] = {<span class="str">"result"</span>: result}
+                pending.remove(step)
+
+        <span class="kw">return</span> completed</code></pre>
+
+  <h3>3.4 Reflection —— 自我反思修正</h3>
+  <pre><code><span class="kw">async def</span> <span class="fn">reflect_and_improve</span>(llm, plan_result: <span class="tp">str</span>, goal: <span class="tp">str</span>) -> <span class="tp">str</span>:
+    <span class="str">"""执行完后自我检查：是否达到目标？如果没达到，自动修正"""</span>
+    check = <span class="kw">await</span> llm.chat(messages=[
+        {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">f"""Goal: </span>{goal}<span class="str">
+
+Plan execution result:
+</span>{plan_result}<span class="str">
+
+Evaluate: Did we achieve the goal?
+- If YES: Reply "PASS"
+- If NO: Reply "NEEDS_FIX: [what's wrong]"
+
+Then provide corrected output if needed.
+"""</span>}
+    ], temperature=<span class="num">0</span>)
+
+    <span class="kw">if</span> <span class="str">"NEEDS_FIX"</span> <span class="kw">in</span> check.content:
+        <span class="cm"># 发现问题，再跑一轮修正</span>
+        fix = <span class="kw">await</span> llm.chat(messages=[
+            {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">f"Original result:</span><span class="se">\n</span>{plan_result}<span class="str">
+
+Problem: </span>{check.content}<span class="str">
+
+Please fix it."</span>}
+        ])
+        <span class="kw">return</span> fix.content
+    <span class="kw">return</span> plan_result</code></pre>
+
+  <div class="callout">
+    <strong>Plan + ReAct 混合模式总结：</strong><br>
+    ① <strong>LLM Plan</strong>：把大任务拆成 3-8 个步骤 → ② <strong>DAG Executor</strong>：按依赖并行执行 → ③ <strong>每个步骤内部用 ReAct</strong>：允许 LLM 在步骤内灵活调整 → ④ <strong>Reflection</strong>：执行完后自检，必要时自动修正。<br>
+    这就是大多数生产级 Agent 框架（LangGraph、AutoGPT、CrewAI）的底层架构。
+  </div>
+</section>
+
+<!-- ═══════ SECTION 4: 状态机控制 ═══════ -->
+<section class="section" id="s4">
+  <h2><span class="s-num" style="background:var(--purple); color:#fff;">4</span>状态机与流程控制</h2>
+  <p class="subtitle">Agent 不是简单的 while 循环。生产级 Agent 需要显式的状态机来管理生命周期、处理异常、实现复杂的多阶段流程。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-s4" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-s4" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>4.1 Agent 生命周期状态机</h3>
+  <div class="diagram">                  ┌─────────┐
+                  │  IDLE   │ ← 等待用户输入
+                  └────┬────┘
+                       │ user_message
+                       ▼
+                  ┌─────────┐
+             ┌────│THINKING │────┐
+             │    └─────────┘    │
+             │ tool_calls        │ text_response
+             ▼                   ▼
+        ┌─────────┐         ┌─────────┐
+        │EXECUTING│         │FINISHED │
+        └────┬────┘         └─────────┘
+             │
+             ▼
+        ┌─────────┐
+    ┌───│OBSERVING│───┐
+    │   └─────────┘   │
+    │ continue        │ done
+    │                 ▼
+    │            ┌─────────┐
+    └───────────→│THINKING │ (回到思考)
+    ┌────────────│ (or)    │
+    │            └─────────┘
+    │ error
+    ▼
+┌─────────┐
+│  ERROR  │──→ IDLE (用户决定下一步)
+└─────────┘</div>
+
+  <h3>4.2 用 Python 实现状态机</h3>
+  <pre><code><span class="kw">from</span> enum <span class="kw">import</span> Enum, auto
+<span class="kw">from</span> typing <span class="kw">import</span> Callable
+
+<span class="kw">class</span> <span class="tp">AgentState</span>(Enum):
+    IDLE = auto()
+    THINKING = auto()
+    EXECUTING = auto()
+    OBSERVING = auto()
+    FINISHED = auto()
+    ERROR = auto()
+    CANCELLED = auto()
+
+<span class="kw">class</span> <span class="tp">StateMachineAgent</span>:
+    <span class="str">"""显式状态机的 Agent"""</span>
+
+    TRANSITIONS = {
+        AgentState.IDLE:      [AgentState.THINKING, AgentState.CANCELLED],
+        AgentState.THINKING:  [AgentState.EXECUTING, AgentState.FINISHED, AgentState.ERROR],
+        AgentState.EXECUTING: [AgentState.OBSERVING, AgentState.ERROR],
+        AgentState.OBSERVING: [AgentState.THINKING, AgentState.FINISHED, AgentState.ERROR],
+        AgentState.ERROR:     [AgentState.IDLE, AgentState.THINKING],
+    }
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, max_loops=<span class="num">15</span>):
+        <span class="kw">self</span>.state = AgentState.IDLE
+        <span class="kw">self</span>.loop_count = <span class="num">0</span>
+        <span class="kw">self</span>.max_loops = max_loops
+        <span class="kw">self</span>.handlers: <span class="tp">dict</span>[AgentState, Callable] = {}
+        <span class="kw">self</span>.history: <span class="tp">list</span>[<span class="tp">tuple</span>[AgentState, AgentState]] = []
+
+    <span class="kw">def</span> <span class="fn">on</span>(<span class="kw">self</span>, state: AgentState):
+        <span class="str">"""装饰器——注册状态处理函数"""</span>
+        <span class="kw">def</span> <span class="fn">decorator</span>(fn):
+            <span class="kw">self</span>.handlers[state] = fn
+            <span class="kw">return</span> fn
+        <span class="kw">return</span> decorator
+
+    <span class="kw">def</span> <span class="fn">transition</span>(<span class="kw">self</span>, new_state: AgentState):
+        <span class="kw">if</span> new_state <span class="kw">not in self</span>.TRANSITIONS.get(<span class="kw">self</span>.state, []):
+            <span class="kw">raise</span> <span class="tp">ValueError</span>(<span class="str">f"Invalid transition: </span>{<span class="kw">self</span>.state}<span class="str"> → </span>{new_state}<span class="str">"</span>)
+        <span class="kw">self</span>.history.append((<span class="kw">self</span>.state, new_state))
+        <span class="kw">self</span>.state = new_state
+
+    <span class="kw">async def</span> <span class="fn">run</span>(<span class="kw">self</span>):
+        <span class="kw">while self</span>.state != AgentState.FINISHED <span class="kw">and self</span>.loop_count < <span class="kw">self</span>.max_loops:
+            handler = <span class="kw">self</span>.handlers[<span class="kw">self</span>.state]
+            <span class="kw">await</span> handler()
+            <span class="kw">self</span>.loop_count += <span class="num">1</span>
+
+agent = StateMachineAgent()
+
+<span class="de">@agent.on</span>(AgentState.THINKING)
+<span class="kw">async def</span> <span class="fn">handle_thinking</span>():
+    response = <span class="kw">await</span> llm.chat(...)
+    <span class="kw">if</span> response.tool_calls:
+        agent.transition(AgentState.EXECUTING)
+    <span class="kw">else</span>:
+        agent.transition(AgentState.FINISHED)
+
+<span class="de">@agent.on</span>(AgentState.ERROR)
+<span class="kw">async def</span> <span class="fn">handle_error</span>():
+    <span class="cm"># 记录错误、尝试恢复、或者返回友好提示</span>
+    <span class="kw">if</span> retry_count < <span class="num">3</span>:
+        agent.transition(AgentState.THINKING)
+    <span class="kw">else</span>:
+        agent.transition(AgentState.IDLE)</code></pre>
+
+  <h3>4.3 Agent 的错误处理体系</h3>
+  <table>
+    <tr><th>错误类型</th><th>处理策略</th><th>用户可见行为</th></tr>
+    <tr><td><strong>LLM API 错误</strong><br>(429/5xx/超时)</td><td>指数退避重试 3 次 → 切换备用模型</td><td>"服务繁忙，正在重试..."</td></tr>
+    <tr><td><strong>Tool 执行异常</strong><br>(文件不存在、权限不足)</td><td>把错误信息给 LLM，让它换方案</td><td>LLM 自行调整方案，用户无感</td></tr>
+    <tr><td><strong>Tool 超时</strong></td><td>终止该 tool call，告知 LLM</td><td>"工具超时，切换策略..."</td></tr>
+    <tr><td><strong>Context Overflow</strong></td><td>滑动窗口裁剪 / 压缩历史</td><td>"对话过长，已自动摘要早期内容"</td></tr>
+    <tr><td><strong>LLM 幻觉（发明不存在的工具）</strong></td><td>工具白名单检查 → 拒绝 → 告知 LLM</td><td>"尝试调用了不存在的工具，重新思考..."</td></tr>
+    <tr><td><strong>无限循环</strong></td><td>max_steps 硬限制</td><td>"任务过于复杂，请简化问题"</td></tr>
+    <tr><td><strong>用户中断</strong></td><td>cancelled flag → 立即停止</td><td>返回已生成的部分内容</td></tr>
+  </table>
+</section>
+
+<!-- ═══════ SECTION 5: MCP 协议 ═══════ -->
+<section class="section" id="s5">
+  <h2><span class="s-num" style="background:var(--pink); color:#fff;">5</span>MCP 协议集成</h2>
+  <p class="subtitle">MCP (Model Context Protocol) 是 Anthropic 提出的 Agent-工具通信标准。它让你的 Agent 可以通过统一协议连接任何 MCP Server，而不是每个工具都写一次对接代码。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-s5" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-s5" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>5.1 MCP 架构概览</h3>
+  <div class="diagram">┌─────────────────────────────────────────────────────────┐
+│                     Agent (MCP Client)                    │
+│  ┌─────────┐  ┌──────────┐  ┌──────────────┐            │
+│  │ LLM     │  │Tool Exec │  │MCP Client Mgr│            │
+│  └────┬────┘  └────┬─────┘  └──────┬───────┘            │
+│       │            │               │                      │
+│       └────────────┼───────────────┘                      │
+└────────────────────┼──────────────────────────────────────┘
+                     │ JSON-RPC over stdio / HTTP-SSE
+        ┌────────────┼────────────┐
+        │            │            │
+  ┌─────▼─────┐ ┌───▼──────┐ ┌──▼─────────┐
+  │MCP Server │ │MCP Server│ │MCP Server  │
+  │ (GitHub)  │ │(Filesys) │ │(PostgreSQL)│
+  │ tools:    │ │ tools:   │ │ tools:     │
+  │ - issues  │ │ - read   │ │ - query    │
+  │ - PRs     │ │ - write  │ │ - migrate  │
+  │ - search  │ │ - list   │ │ - schema   │
+  └───────────┘ └──────────┘ └────────────┘</div>
+
+  <h3>5.2 MCP 通信协议 —— JSON-RPC 2.0</h3>
+  <pre><code><span class="cm"># MCP 使用 JSON-RPC 2.0 作为通信格式</span>
+<span class="cm"># 传输方式：stdio (子进程) 或 HTTP-SSE (网络)</span>
+
+<span class="cm"># === Client → Server: 列出可用工具 ===</span>
+{
+  <span class="str">"jsonrpc"</span>: <span class="str">"2.0"</span>,
+  <span class="str">"id"</span>: <span class="num">1</span>,
+  <span class="str">"method"</span>: <span class="str">"tools/list"</span>,
+  <span class="str">"params"</span>: {}
+}
+
+<span class="cm"># === Server → Client: 返回工具列表 ===</span>
+{
+  <span class="str">"jsonrpc"</span>: <span class="str">"2.0"</span>,
+  <span class="str">"id"</span>: <span class="num">1</span>,
+  <span class="str">"result"</span>: {
+    <span class="str">"tools"</span>: [
+      {
+        <span class="str">"name"</span>: <span class="str">"get_weather"</span>,
+        <span class="str">"description"</span>: <span class="str">"获取天气"</span>,
+        <span class="str">"inputSchema"</span>: {
+          <span class="str">"type"</span>: <span class="str">"object"</span>,
+          <span class="str">"properties"</span>: {
+            <span class="str">"city"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>}
+          }
+        }
+      }
+    ]
+  }
+}
+
+<span class="cm"># === Client → Server: 执行工具 ===</span>
+{
+  <span class="str">"jsonrpc"</span>: <span class="str">"2.0"</span>,
+  <span class="str">"id"</span>: <span class="num">2</span>,
+  <span class="str">"method"</span>: <span class="str">"tools/call"</span>,
+  <span class="str">"params"</span>: {
+    <span class="str">"name"</span>: <span class="str">"get_weather"</span>,
+    <span class="str">"arguments"</span>: {<span class="str">"city"</span>: <span class="str">"北京"</span>}
+  }
+}</code></pre>
+
+  <h3>5.3 MCP Client 实现</h3>
+  <pre><code><span class="kw">import</span> asyncio, json
+
+<span class="kw">class</span> <span class="tp">MCPClient</span>:
+    <span class="str">"""通过 stdio 连接 MCP Server"""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, server_command: <span class="tp">list</span>[<span class="tp">str</span>]):
+        <span class="kw">self</span>.cmd = server_command  <span class="cm"># e.g., ["npx", "@modelcontextprotocol/server-github"]</span>
+        <span class="kw">self</span>.process = <span class="kw">None</span>
+        <span class="kw">self</span>.request_id = <span class="num">0</span>
+
+    <span class="kw">async def</span> <span class="fn">connect</span>(<span class="kw">self</span>):
+        <span class="kw">self</span>.process = <span class="kw">await</span> asyncio.create_subprocess_exec(
+            *<span class="kw">self</span>.cmd,
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+        )
+
+    <span class="kw">async def</span> <span class="fn">_rpc</span>(<span class="kw">self</span>, method: <span class="tp">str</span>, params: <span class="tp">dict</span> = {}) -> <span class="tp">dict</span>:
+        <span class="kw">self</span>.request_id += <span class="num">1</span>
+        request = json.dumps({
+            <span class="str">"jsonrpc"</span>: <span class="str">"2.0"</span>,
+            <span class="str">"id"</span>: <span class="kw">self</span>.request_id,
+            <span class="str">"method"</span>: method,
+            <span class="str">"params"</span>: params,
+        })
+        <span class="kw">self</span>.process.stdin.write((request + <span class="str">"\n"</span>).encode())
+        <span class="kw">await self</span>.process.stdin.drain()
+
+        raw = <span class="kw">await self</span>.process.stdout.readline()
+        <span class="kw">return</span> json.loads(raw)
+
+    <span class="kw">async def</span> <span class="fn">list_tools</span>(<span class="kw">self</span>) -> <span class="tp">list</span>:
+        resp = <span class="kw">await self</span>._rpc(<span class="str">"tools/list"</span>)
+        <span class="kw">return</span> resp[<span class="str">"result"</span>][<span class="str">"tools"</span>]
+
+    <span class="kw">async def</span> <span class="fn">call_tool</span>(<span class="kw">self</span>, name: <span class="tp">str</span>, args: <span class="tp">dict</span>) -> <span class="tp">str</span>:
+        resp = <span class="kw">await self</span>._rpc(<span class="str">"tools/call"</span>, {<span class="str">"name"</span>: name, <span class="str">"arguments"</span>: args})
+        <span class="kw">return</span> resp[<span class="str">"result"</span>]</code></pre>
+
+  <h3>5.4 MCP Tools → OpenAI Tool Definition 转换</h3>
+  <pre><code><span class="kw">def</span> <span class="fn">mcp_to_openai_tool</span>(mcp_tool: <span class="tp">dict</span>) -> <span class="tp">dict</span>:
+    <span class="str">"""将 MCP 工具定义转换为 OpenAI function calling 格式"""</span>
+    <span class="kw">return</span> {
+        <span class="str">"type"</span>: <span class="str">"function"</span>,
+        <span class="str">"function"</span>: {
+            <span class="str">"name"</span>: mcp_tool[<span class="str">"name"</span>],
+            <span class="str">"description"</span>: mcp_tool.get(<span class="str">"description"</span>, <span class="str">""</span>),
+            <span class="str">"parameters"</span>: mcp_tool.get(<span class="str">"inputSchema"</span>, {
+                <span class="str">"type"</span>: <span class="str">"object"</span>,
+                <span class="str">"properties"</span>: {}
+            }),
+        }
+    }
+
+<span class="cm"># Agent 启动时动态加载所有 MCP Server 的工具</span>
+<span class="kw">async def</span> <span class="fn">load_all_mcp_tools</span>(mcp_clients: <span class="tp">list</span>[MCPClient]) -> <span class="tp">list</span>[<span class="tp">dict</span>]:
+    all_tools = []
+    <span class="kw">for</span> client <span class="kw">in</span> mcp_clients:
+        mcp_tools = <span class="kw">await</span> client.list_tools()
+        all_tools.extend(mcp_to_openai_tool(t) <span class="kw">for</span> t <span class="kw">in</span> mcp_tools)
+    <span class="kw">return</span> all_tools</code></pre>
+
+  <div class="callout good">
+    <strong>MCP 的价值：</strong>
+    不用为 GitHub、GitLab、Jira、Slack... 每个写一套对接代码。<br>
+    社区已提供 100+ 个 MCP Server，一行命令启动，Agent 即时获得工具。<br>
+    <strong>对 Agent 后端开发者来说</strong>：理解 MCP 协议 + 写一个 MCP Client = 获得了生态级工具接入能力。
+  </div>
+
+  <h3>5.5 MCP 的核心方法</h3>
+  <table>
+    <tr><th>方法</th><th>方向</th><th>含义</th></tr>
+    <tr><td><code>tools/list</code></td><td>C→S</td><td>获取工具列表</td></tr>
+    <tr><td><code>tools/call</code></td><td>C→S</td><td>执行工具</td></tr>
+    <tr><td><code>resources/list</code></td><td>C→S</td><td>获取资源列表（文件等）</td></tr>
+    <tr><td><code>resources/read</code></td><td>C→S</td><td>读取资源内容</td></tr>
+    <tr><td><code>prompts/list</code></td><td>C→S</td><td>获取 Prompt 模板</td></tr>
+    <tr><td><code>prompts/get</code></td><td>C→S</td><td>获取具体 Prompt</td></tr>
+    <tr><td><code>notifications/*</code></td><td>S→C</td><td>Server 主动推送事件（资源变更等）</td></tr>
+  </table>
+</section>
+
+<!-- ═══════ SECTION 6: 多 Agent 协作 ═══════ -->
+<section class="section" id="s6">
+  <h2><span class="s-num" style="background:var(--cyan); color:#0d1117;">6</span>多 Agent 协作</h2>
+  <p class="subtitle">单个 LLM 有注意力瓶颈。复杂任务需要多个专注的 Agent 分工协作——Orchestrator 调度，Worker 执行，Reviewer 把关。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-s6" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-s6" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>6.1 三种多 Agent 架构</h3>
+  <div class="diagram"><span class="kw">1. Orchestrator-Worker (中心化)</span>
+       ┌──────────────┐
+       │ Orchestrator │ ← 总指挥：拆任务、分配、汇总
+       └──┬───┬───┬───┘
+          │   │   │
+     ┌────▼─┐ │ ┌─▼────┐
+     │Worker│ │ │Worker│  ← 各自独立完成子任务
+     │ Code │ │ │Search│
+     └──────┘ │ └──────┘
+          ┌───▼───┐
+          │Worker │
+          │Review │
+          └───────┘
+
+<span class="kw">2. Hierarchical (多层)</span>
+       ┌─────────┐
+       │ Manager │ ← 制定目标
+       └────┬────┘
+    ┌───────┼───────┐
+    ▼       ▼       ▼
+┌──────┐┌──────┐┌──────┐
+│Lead A││Lead B││Lead C│ ← 各自带团队
+└──┬───┘└──┬───┘└──┬───┘
+   │       │       │
+  workers workers workers
+
+<span class="kw">3. Peer-to-Peer (去中心化)</span>
+  Agent A ←──→ Agent B
+    ↕            ↕
+  Agent C ←──→ Agent D
+  所有 Agent 平等，互相发消息，自组织</div>
+
+  <h3>6.2 Orchestrator 实现</h3>
+  <pre><code><span class="kw">class</span> <span class="tp">Orchestrator</span>:
+    <span class="str">"""协调多个 Worker Agent 完成复杂任务"""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, llm, workers: <span class="tp">dict</span>[<span class="tp">str</span>, AgentLoop]):
+        <span class="kw">self</span>.llm = llm
+        <span class="kw">self</span>.workers = workers  <span class="cm"># {"coder": Agent, "reviewer": Agent, "searcher": Agent}</span>
+
+    <span class="kw">async def</span> <span class="fn">delegate</span>(<span class="kw">self</span>, task: <span class="tp">str</span>) -> <span class="tp">str</span>:
+        <span class="cm"># Step 1: Orchestrator 分析任务，决定分工</span>
+        plan = <span class="kw">await self</span>.llm.chat(messages=[{
+            <span class="str">"role"</span>: <span class="str">"user"</span>,
+            <span class="str">"content"</span>: <span class="str">f"""Available workers: </span>{<span class="bu">list</span>(<span class="kw">self</span>.workers.keys())}<span class="str">
+
+Task: </span>{task}<span class="str">
+
+Plan which worker should do what, in what order.
+Return JSON: [{{"step": 1, "worker": "...", "task": "..."}}]
+"""</span>
+        }], response_format={<span class="str">"type"</span>: <span class="str">"json_object"</span>})
+        steps = json.loads(plan.content)[<span class="str">"steps"</span>]
+
+        <span class="cm"># Step 2: 顺序执行（有依赖）或并行执行（无依赖）</span>
+        context = {}
+        <span class="kw">for</span> step <span class="kw">in</span> steps:
+            worker = <span class="kw">self</span>.workers[step[<span class="str">"worker"</span>]]
+            task_with_context = <span class="str">f"{step['task']}
+
+Context from previous steps:
+</span>{json.dumps(context, indent=2, ensure_ascii=False)}<span class="str">"
+            result = await worker.run(task_with_context)
+            context[step["worker"]] = result
+
+        # Step 3: Orchestrator 汇总所有 Worker 结果
+        summary = await self</span>.llm.chat(messages=[{
+            <span class="str">"role"</span>: <span class="str">"user"</span>,
+            <span class="str">"content"</span>: <span class="str">f"Original task: </span>{task}<span class="str">
+
+Worker outputs:
+</span>{json.dumps(context, indent=2, ensure_ascii=False)}<span class="str">
+
+Synthesize a final response."</span>
+        }])
+        <span class="kw">return</span> summary.content</code></pre>
+
+  <h3>6.3 Worker Agent 的核心区别</h3>
+  <table>
+    <tr><th>特性</th><th>Orchestrator</th><th>Worker</th></tr>
+    <tr><td><strong>System Prompt</strong></td><td>"You are a task planner. Decompose and delegate."</td><td>"You are a {specialist}. Focus on one thing."</td></tr>
+    <tr><td><strong>可用工具</strong></td><td>只有 delegate 工具</td><td>领域专属工具（文件、搜索、执行）</td></tr>
+    <tr><td><strong>Context</strong></td><td>用户的原始意图 + Worker 返回摘要</td><td>Orchestrator 分配的具体子任务 + 上游结果</td></tr>
+    <tr><td><strong>Max Steps</strong></td><td>少（3-8）—— 主要是规划</td><td>中（5-15）—— 实际执行工作</td></tr>
+    <tr><td><strong>失败处理</strong></td><td>重新分配 / 降级 / 告知用户</td><td>返回错误给 Orchestrator，由它决定</td></tr>
+  </table>
+
+  <h3>6.4 多 Agent 通信协议</h3>
+  <pre><code><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
+<span class="kw">import</span> asyncio
+
+<span class="de">@dataclass</span>
+<span class="kw">class</span> <span class="tp">AgentMessage</span>:
+    from_agent: <span class="tp">str</span>
+    to_agent: <span class="tp">str</span>
+    type: <span class="tp">str</span>    <span class="cm"># "task" | "result" | "query" | "cancel"</span>
+    content: <span class="tp">str</span>
+
+<span class="kw">class</span> <span class="tp">AgentBus</span>:
+    <span class="str">"""Agent 间消息总线（类似微服务的 Message Queue）"""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>):
+        <span class="kw">self</span>.queues: <span class="tp">dict</span>[<span class="tp">str</span>, asyncio.Queue] = {}
+        <span class="kw">self</span>.broadcast: <span class="tp">list</span> = []
+
+    <span class="kw">def</span> <span class="fn">register</span>(<span class="kw">self</span>, agent_name: <span class="tp">str</span>):
+        <span class="kw">self</span>.queues[agent_name] = asyncio.Queue()
+
+    <span class="kw">async def</span> <span class="fn">send</span>(<span class="kw">self</span>, msg: AgentMessage):
+        <span class="kw">if</span> msg.to_agent <span class="kw">in self</span>.queues:
+            <span class="kw">await self</span>.queues[msg.to_agent].put(msg)
+        <span class="kw">else</span>:
+            <span class="kw">self</span>.broadcast.append(msg)  <span class="cm"># 目标不存在 → 广播</span>
+
+    <span class="kw">async def</span> <span class="fn">receive</span>(<span class="kw">self</span>, agent_name: <span class="tp">str</span>) -> AgentMessage:
+        <span class="kw">return await self</span>.queues[agent_name].get()</code></pre>
+
+  <div class="callout warn">
+    <strong>多 Agent 的反模式：</strong>
+    ① 过度拆分 → 3 个 Agent 就够的活用了 10 个，协调开销吃掉所有收益<br>
+    ② Agent 互相甩锅 → "不是我的问题，你去找 Agent B"的死循环<br>
+    ③ 信息丢失 → Orchestrator 转发时省略关键细节（Chinese whispers 效应）<br>
+    ④ 成本爆炸 → 每个 Agent 都在调 LLM，5 个 Agent 一轮就是 5 次 API 调用<br>
+    <strong>原则：先做好单 Agent，再考虑多 Agent。</strong>
+  </div>
+</section>
+
+<!-- ═══════ 综合实践 ═══════ -->
+<section class="section" id="practice" style="border-bottom: none;">
+  <h2><span class="s-num" style="background:var(--green); color:#fff;">🏗</span>综合实践：智能 Agent 框架</h2>
+  <p class="subtitle">整合本阶段全部知识，构建一个支持 Tool Calling、ReAct、任务规划、MCP 协议的 Agent 框架。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-practice" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-practice" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>项目结构</h3>
+  <pre><code>agent-framework/
+├── core/
+│   ├── agent_loop.py       <span class="cm"># ReAct Agent Loop (2.2)</span>
+│   ├── state_machine.py    <span class="cm"># 显式状态机 (4.2)</span>
+│   ├── plan_executor.py    <span class="cm"># Plan Generator + DAG Executor (3.2-3.3)</span>
+│   └── orchestrator.py     <span class="cm"># 多 Agent 协调 (6.2)</span>
+├── tools/
+│   ├── base.py             <span class="cm"># Tool 基类 + 注册表</span>
+│   ├── executor.py         <span class="cm"># 安全执行器 (1.5)</span>
+│   ├── builtin/            <span class="cm"># 内置工具（文件、搜索、Python执行）</span>
+│   └── mcp_adapter.py      <span class="cm"># MCP → OpenAI Tool 适配 (5.3-5.4)</span>
+├── protocols/
+│   ├── agent_bus.py        <span class="cm"># 多 Agent 通信总线 (6.4)</span>
+│   └── events.py           <span class="cm"># 事件定义 (emit/callback)</span>
+├── config/
+│   └── settings.py         <span class="cm"># LLM + MCP Server 配置</span>
+└── examples/
+    ├── single_agent.py     <span class="cm"># 单 Agent 示例</span>
+    ├── multi_agent.py      <span class="cm"># 多 Agent 协作示例</span>
+    └── mcp_demo.py         <span class="cm"># MCP 集成示例</span></code></pre>
+
+  <h3>功能清单（毕业标准）</h3>
+  <table>
+    <tr><th>#</th><th>功能</th><th>验收标准</th></tr>
+    <tr><td>1</td><td>Tool Calling</td><td>支持并行/串行 tool call，工具白名单，超时控制</td></tr>
+    <tr><td>2</td><td>ReAct Loop</td><td>完整 THINK→ACT→OBSERVE 循环，支持中断恢复</td></tr>
+    <tr><td>3</td><td>任务规划</td><td>LLM 自动拆解任务 → DAG 并行执行 → 自我反思</td></tr>
+    <tr><td>4</td><td>状态机</td><td>显式状态转换，非法转换拦截，状态历史可追溯</td></tr>
+    <tr><td>5</td><td>MCP 集成</td><td>动态加载 MCP Server 工具，转换 OpenAI format</td></tr>
+    <tr><td>6</td><td>多 Agent</td><td>Orchestrator + Workers 协作，消息总线通信</td></tr>
+    <tr><td>7</td><td>错误恢复</td><td>7 种错误类型各有处理策略（见 4.3）</td></tr>
+    <tr><td>8</td><td>可观测性</td><td>emit 事件钩子 → WebSocket/SSE 推送到前端</td></tr>
+  </table>
+
+  <div class="callout good">
+    <strong>阶段 3 毕业标准：</strong>
+    完成以上项目后，你应该能够 ——<br>
+    ① 独立实现完整的 ReAct Agent Loop，支持工具调用和流式推送<br>
+    ② 设计安全的工具执行沙箱（白名单、超时、结果截断）<br>
+    ③ 实现 Plan-and-Execute + Reflection 的复杂任务处理流程<br>
+    ④ 用显式状态机管理 Agent 生命周期和异常恢复<br>
+    ⑤ 通过 MCP 协议连接外部工具生态<br>
+    ⑥ 设计和实现多 Agent 协作系统（Orchestrator-Worker 模式）<br>
+    ⑦ 为阶段 4 的记忆系统和 RAG 打好 Agent 框架基础
+  </div>
+</section>
+
+<!-- FOOTER -->
+<div class="nav-footer">
+  <a href="file:///D:/Hermes/workspace/agent-backend-learning/02-llm-api-integration/phase2.html">
+    ← 阶段 2：LLM 基础 & API 集成
+  </a>
+  <a href="file:///D:/Hermes/workspace/agent-backend-learning/04-memory-rag/phase4.html" style="color:var(--accent);">
+    阶段 4：记忆 & 知识检索 →
+  </a>
+</div>
+
+</main>
+</div>
+
+<script>
+const SIDS = ['s1','s2','s3','s4','s5','s6','practice'];
+function updateProgress() {
+  let done = 0;
+  SIDS.forEach(id => {
+    const cb = document.getElementById('check-'+id);
+    const badge = document.getElementById('badge-'+id);
+    if (cb && cb.checked) { done++; if(badge){badge.textContent='✓';badge.className='badge done';} }
+    else { if(badge){badge.textContent='';badge.className='badge';} }
+  });
+  document.getElementById('progress-fill').style.width = (done/SIDS.length*100).toFixed(0)+'%';
+  document.getElementById('progress-text').textContent = done+'/'+SIDS.length;
+  const s={}; SIDS.forEach(id=>{const cb=document.getElementById('check-'+id); if(cb)s[id]=cb.checked;});
+  localStorage.setItem('agent-phase3-progress',JSON.stringify(s));
+}
+function loadProgress() {
+  const saved=localStorage.getItem('agent-phase3-progress');
+  if(!saved)return;
+  const state=JSON.parse(saved);
+  SIDS.forEach(id=>{if(state[id]!==undefined){const cb=document.getElementById('check-'+id);if(cb)cb.checked=state[id];}});
+  updateProgress();
+}
+function updateActiveNav() {
+  const sections=SIDS.map(id=>document.getElementById(id));
+  let cur=SIDS[0];
+  sections.forEach((sec,i)=>{if(!sec)return;if(sec.getBoundingClientRect().top<=150)cur=SIDS[i];});
+  document.querySelectorAll('.sidebar nav a').forEach(a=>{
+    a.classList.remove('active');
+    if(a.getAttribute('data-section')===cur)a.classList.add('active');
+  });
+}
+window.addEventListener('scroll',updateActiveNav);
+window.addEventListener('load',()=>{loadProgress();updateActiveNav();});
+</script>
+</body>
+</html>

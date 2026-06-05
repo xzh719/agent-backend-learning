@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段4：记忆 & 知识检索 —— AI Agent 后端学习</title>
+<style>
+  :root { --bg:#0d1117; --bg-card:#161b22; --bg-hover:#1c2129; --bg-code:#0d1117; --border:#30363d; --text:#c9d1d9; --text-muted:#8b949e; --accent:#58a6ff; --green:#3fb950; --orange:#d2991d; --purple:#a371f7; --red:#f85149; --cyan:#39d2c0; --pink:#db61a2; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+  .layout { display:flex; min-height:100vh; }
+  .sidebar { width: 280px; flex-shrink:0; background: var(--bg-card); border-right: 1px solid var(--border); padding: 2rem 1.5rem; position: sticky; top:0; height:100vh; overflow-y:auto; }
+  .sidebar h3 { font-size: 0.85rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.8rem; }
+  .sidebar .phase-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem; }
+  .sidebar nav { display:flex; flex-direction:column; gap: 0.3rem; }
+  .sidebar nav a { color: var(--text-muted); text-decoration: none; font-size: 0.88rem; padding: 0.45rem 0.7rem; border-radius: 6px; transition: all 0.15s; border-left: 2px solid transparent; }
+  .sidebar nav a:hover { color: var(--text); background: var(--bg-hover); }
+  .sidebar nav a.active { color: var(--accent); background: rgba(88,166,255,0.08); border-left-color: var(--accent); }
+  .sidebar .badge { display: inline-block; font-size: 0.7rem; padding: 0.12rem 0.4rem; border-radius: 4px; margin-left: 0.3rem; background: var(--border); color: var(--text-muted); }
+  .sidebar .badge.done { background: rgba(63,185,80,0.15); color: var(--green); }
+  .main { flex:1; padding: 2.5rem 3rem; max-width: 960px; }
+  .section { margin-bottom: 4rem; padding-bottom: 3rem; border-bottom: 1px solid var(--border); }
+  .section:last-child { border-bottom: none; }
+  .section h2 { font-size: 1.65rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.7rem; }
+  .section .s-num { width: 36px; height: 36px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; flex-shrink: 0; }
+  .section .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.8rem; }
+  h3 { font-size: 1.2rem; margin: 1.8rem 0 0.7rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
+  h4 { font-size: 1rem; margin: 1.4rem 0 0.5rem; color: var(--accent); }
+  p { margin-bottom: 0.8rem; color: var(--text-muted); }
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; color: var(--text-muted); } li { margin-bottom: 0.25rem; }
+  pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 1.2rem 1.4rem; margin: 1rem 0 1.5rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; font-family: 'JetBrains Mono','Fira Code','Cascadia Code','Consolas',monospace; }
+  pre code { color: #c9d1d9; } code { font-family: 'JetBrains Mono','Fira Code','Cascadia Code','Consolas',monospace; font-size: 0.85em; background: rgba(110,118,129,0.15); padding: 0.15em 0.4em; border-radius: 4px; } pre code { background: none; padding: 0; font-size: inherit; }
+  .kw { color:#ff7b72; } .str { color:#a5d6ff; } .cm { color:#8b949e; font-style:italic; } .fn { color:#d2a8ff; } .num { color:#79c0ff; } .tp { color:#7ee787; } .de { color:#d2a8ff; } .bu { color:#79c0ff; }
+  .callout { border-left: 3px solid var(--accent); background: rgba(88,166,255,0.06); padding: 0.8rem 1.2rem; border-radius: 0 6px 6px 0; margin: 1.2rem 0; font-size: 0.9rem; }
+  .callout.warn { border-color: var(--orange); background: rgba(210,153,29,0.06); }
+  .callout.good { border-color: var(--green); background: rgba(63,185,80,0.06); }
+  .callout strong { color: var(--text); }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); } th { color: var(--accent); font-weight: 600; } td { color: var(--text-muted); }
+  .diagram { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 1.2rem; margin: 1rem 0; font-family: monospace; font-size: 0.82rem; white-space: pre; overflow-x: auto; color: var(--text-muted); line-height: 1.5; }
+  .nav-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); }
+  .nav-footer a { color: var(--accent); text-decoration: none; font-size: 0.9rem; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 6px; transition: all 0.15s; }
+  .nav-footer a:hover { background: var(--bg-hover); border-color: var(--accent); }
+  .progress { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.2rem; font-size: 0.85rem; color: var(--text-muted); }
+  .progress-bar { flex:1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.3s; }
+  @media (max-width:860px) { .layout { flex-direction: column; } .sidebar { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--border); padding: 1.2rem; } .sidebar nav { flex-direction: row; flex-wrap: wrap; } .main { padding: 1.5rem; } }
+  html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <h3>AI Agent 后端学习</h3>
+  <div class="phase-title">阶段 4：记忆 &amp; 知识检索</div>
+  <div class="progress"><span>进度</span><div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div><span id="progress-text">0/5</span></div>
+  <nav>
+    <a href="#s1" data-section="s1">1. Embedding 向量化 <span class="badge" id="badge-s1"></span></a>
+    <a href="#s2" data-section="s2">2. 向量数据库 <span class="badge" id="badge-s2"></span></a>
+    <a href="#s3" data-section="s3">3. RAG 全链路 <span class="badge" id="badge-s3"></span></a>
+    <a href="#s4" data-section="s4">4. Agent 记忆系统 <span class="badge" id="badge-s4"></span></a>
+    <a href="#s5" data-section="s5">5. 多模态检索 <span class="badge" id="badge-s5"></span></a>
+    <a href="#practice" data-section="practice" style="margin-top:0.8rem; color:var(--green);">🏗 综合实践项目</a>
+  </nav>
+</aside>
+<main class="main">
+<div style="margin-bottom:3rem;">
+  <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:0.3rem;">← <a href="file:///D:/Hermes/workspace/agent-backend-roadmap.html" style="color:var(--cyan);">总路线图</a> | <a href="file:///D:/Hermes/workspace/agent-backend-learning/03-agent-core/phase3.html" style="color:var(--cyan);">← 阶段3</a></p>
+  <h1 style="font-size:2rem; background:linear-gradient(90deg,var(--accent),var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">阶段 4：记忆 &amp; 知识检索</h1>
+  <p style="color:var(--text-muted);">Embedding、向量数据库、RAG 全链路、Agent 记忆系统 —— 让 Agent 拥有长期记忆和外部知识</p>
+  <p style="color:var(--text-muted); font-size:0.85rem;">⏱ 预计 2-3 周 | 📚 5 个核心主题 | 🎯 构建完整的 RAG + Agent 记忆系统</p>
+</div>
+
+<div class="callout">
+  <strong>学习路径逻辑：</strong>
+  阶段 3 让 Agent 能动，但 Agent 每次对话都「失忆」——没有长期记忆，没有外部知识。<br>
+  先学 <strong>Embedding</strong>（文本转向量）→ 再学 <strong>向量数据库</strong>（存储检索）→ 然后 <strong>RAG 全链路</strong>（检索增强生成）→ 进而构建 <strong>Agent 记忆系统</strong>（三层记忆架构）→ 最后拓展 <strong>多模态检索</strong>。
+</div>
+
+<!-- ═══ S1: Embedding ═══ -->
+<section class="section" id="s1">
+  <h2><span class="s-num" style="background:var(--accent); color:#fff;">1</span>Embedding 向量化</h2>
+  <p class="subtitle">Embedding 是 RAG 和 Agent 记忆的基石。把文本变成高维向量，语义相近的文本向量也相近。</p>
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;"><input type="checkbox" id="check-s1" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;"><label for="check-s1" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label></div>
+
+  <h3>1.1 什么是 Embedding？</h3>
+  <div class="diagram">文本: "猫是一种可爱的宠物"
+  → Embedding Model (e.g., text-embedding-3-small)
+  → 向量: [0.023, -0.451, 0.782, ..., 0.112]  ← 1536 维
+
+文本: "狗是人类的好朋友"
+  → Embedding Model
+  → 向量: [0.019, -0.443, 0.791, ..., 0.108]
+
+<span class="kw">cosine_similarity</span>(猫, 狗) = <span class="num">0.87</span>  ← 高相似度 ✓
+<span class="kw">cosine_similarity</span>(猫, "TCP 协议") = <span class="num">0.12</span>  ← 低相似度 ✓</div>
+
+  <h3>1.2 主流 Embedding 模型速查</h3>
+  <table>
+    <tr><th>模型</th><th>维度</th><th>最大 Token</th><th>成本 ($/1M tokens)</th><th>特点</th></tr>
+    <tr><td>text-embedding-3-small</td><td>512/1536</td><td>8191</td><td>$0.02</td><td>性价比王，dimension 可变</td></tr>
+    <tr><td>text-embedding-3-large</td><td>256/3072</td><td>8191</td><td>$0.13</td><td>精度最高</td></tr>
+    <tr><td>text-embedding-ada-002</td><td>1536</td><td>8191</td><td>$0.10</td><td>旧版，不推荐</td></tr>
+    <tr><td>Cohere embed-v3</td><td>1024</td><td>512</td><td>$0.10</td><td>多语言好</td></tr>
+    <tr><td>bge-large-zh-v1.5</td><td>1024</td><td>512</td><td>免费(本地)</td><td>中文专用</td></tr>
+    <tr><td>gte-large</td><td>1024</td><td>512</td><td>免费(本地)</td><td>通用英文</td></tr>
+  </table>
+
+  <h3>1.3 OpenAI Embedding API 实战</h3>
+  <pre><code><span class="kw">import</span> openai
+
+client = openai.OpenAI()
+
+<span class="cm"># 单条 embedding</span>
+resp = client.embeddings.create(
+    model=<span class="str">"text-embedding-3-small"</span>,
+    input=<span class="str">"什么是向量数据库？"</span>,
+    dimensions=<span class="num">512</span>,  <span class="cm"># ★ 可选：降维到 512，省存储 + 速度提升</span>
+)
+vector = resp.data[<span class="num">0</span>].embedding  <span class="cm"># [0.023, -0.451, ...]  (512 floats)</span>
+
+<span class="cm"># 批量 embedding（大幅降低成本 + 提升速度）</span>
+texts = [<span class="str">"文档1"</span>, <span class="str">"文档2"</span>, <span class="str">"文档3"</span>, ...]  <span class="cm"># 一次最多 2048 条</span>
+resp = client.embeddings.create(
+    model=<span class="str">"text-embedding-3-small"</span>,
+    input=texts,
+    dimensions=<span class="num">512</span>,
+)
+vectors = [d.embedding <span class="kw">for</span> d <span class="kw">in</span> resp.data]</code></pre>
+
+  <h3>1.4 本地 Embedding 方案 (sentence-transformers)</h3>
+  <pre><code><span class="kw">from</span> sentence_transformers <span class="kw">import</span> SentenceTransformer
+
+<span class="cm"># 加载模型（首次会下载 ~200MB-1GB）</span>
+model = SentenceTransformer(<span class="str">"BAAI/bge-large-zh-v1.5"</span>)
+
+texts = [<span class="str">"Python 是一门编程语言"</span>, <span class="str">"今天天气很好"</span>]
+
+<span class="cm"># 生成 embedding</span>
+embeddings = model.encode(
+    texts,
+    normalize_embeddings=<span class="kw">True</span>,   <span class="cm"># L2 归一化 → 余弦相似度 = 内积</span>
+    show_progress_bar=<span class="kw">True</span>,
+    batch_size=<span class="num">32</span>,
+)
+
+<span class="cm"># 计算相似度</span>
+<span class="kw">from</span> sklearn.metrics.pairwise <span class="kw">import</span> cosine_similarity
+sim = cosine_similarity([embeddings[<span class="num">0</span>]], [embeddings[<span class="num">1</span>]])[<span class="num">0</span>][<span class="num">0</span>]
+<span class="bu">print</span>(<span class="str">f"相似度: </span>{sim:<span class="num">.4</span>f}<span class="str">"</span>)</code></pre>
+
+  <h3>1.5 Embedding 质量的关键因素</h3>
+  <table>
+    <tr><th>因素</th><th>影响</th><th>最佳实践</th></tr>
+    <tr><td><strong>文本切分 (Chunking)</strong></td><td>太大→语义混杂；太小→缺少上下文</td><td>256-1024 tokens，50-100 token 重叠</td></tr>
+    <tr><td><strong>文本预处理</strong></td><td>格式垃圾 → 噪音向量</td><td>去掉 HTML/Markdown 标记、多余空格</td></tr>
+    <tr><td><strong>查询改写</strong></td><td>短查询 → 信息不足</td><td>HyDE 技术：用 LLM 扩展查询再 embedding</td></tr>
+    <tr><td><strong>维度选择</strong></td><td>越高越精确但越慢</td><td>512 对大多数场景够用</td></tr>
+    <tr><td><strong>多语言</strong></td><td>跨语言检索可能失败</td><td>用多语言模型（bge-m3, Cohere v3）</td></tr>
+  </table>
+</section>
+
+<!-- ═══ S2: 向量数据库 ═══ -->
+<section class="section" id="s2">
+  <h2><span class="s-num" style="background:var(--green); color:#fff;">2</span>向量数据库</h2>
+  <p class="subtitle">向量数据库是 Agent 的「外部大脑」——存储海量文档的向量，毫秒级检索最相关的内容。</p>
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;"><input type="checkbox" id="check-s2" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;"><label for="check-s2" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label></div>
+
+  <h3>2.1 向量数据库选型</h3>
+  <table>
+    <tr><th>数据库</th><th>部署</th><th>性能</th><th>适合场景</th><th>特点</th></tr>
+    <tr><td><strong>ChromaDB</strong></td><td>嵌入式/Python</td><td>中等</td><td>开发/原型</td><td>零配置，pip install 即用</td></tr>
+    <tr><td><strong>Qdrant</strong></td><td>独立服务/Docker</td><td>高</td><td>生产环境</td><td>Rust 编写，过滤强，有云服务</td></tr>
+    <tr><td><strong>Milvus</strong></td><td>分布式集群</td><td>极高</td><td>十亿级向量</td><td>企业级，K8s 部署</td></tr>
+    <tr><td><strong>Weaviate</strong></td><td>独立服务</td><td>高</td><td>混合检索</td><td>自带向量化 + 关键词混合</td></tr>
+    <tr><td><strong>Pinecone</strong></td><td>SaaS</td><td>高</td><td>不想管运维</td><td>全托管，但贵</td></tr>
+    <tr><td><strong>PostgreSQL + pgvector</strong></td><td>已有 PG</td><td>中等</td><td>已有 PG 的团队</td><td>无额外基础设施</td></tr>
+    <tr><td><strong>FAISS</strong></td><td>库</td><td>极高</td><td>离线/嵌入式</td><td>Meta 出品，无持久化</td></tr>
+  </table>
+
+  <h3>2.2 ChromaDB 实战</h3>
+  <pre><code><span class="kw">import</span> chromadb
+<span class="kw">from</span> chromadb.utils <span class="kw">import</span> embedding_functions
+
+<span class="cm"># 初始化（persist_directory 持久化到磁盘）</span>
+client = chromadb.PersistentClient(path=<span class="str">"./chroma_db"</span>)
+
+<span class="cm"># 创建 collection（类似 SQL 的表）</span>
+collection = client.get_or_create_collection(
+    name=<span class="str">"agent_knowledge"</span>,
+    embedding_function=embedding_functions.OpenAIEmbeddingFunction(
+        api_key=<span class="str">"sk-..."</span>,
+        model_name=<span class="str">"text-embedding-3-small"</span>
+    ),
+    metadata={<span class="str">"hnsw:space"</span>: <span class="str">"cosine"</span>},  <span class="cm"># 用余弦相似度</span>
+)
+
+<span class="cm"># 添加文档</span>
+collection.add(
+    documents=[
+        <span class="str">"Python 是一种解释型编程语言"</span>,
+        <span class="str">"JavaScript 主要用于 Web 前端开发"</span>,
+        <span class="str">"Docker 是一个容器化平台"</span>,
+    ],
+    metadatas=[
+        {<span class="str">"topic"</span>: <span class="str">"python"</span>, <span class="str">"source"</span>: <span class="str">"wiki"</span>},
+        {<span class="str">"topic"</span>: <span class="str">"javascript"</span>, <span class="str">"source"</span>: <span class="str">"wiki"</span>},
+        {<span class="str">"topic"</span>: <span class="str">"devops"</span>, <span class="str">"source"</span>: <span class="str">"docs"</span>},
+    ],
+    ids=[<span class="str">"doc1"</span>, <span class="str">"doc2"</span>, <span class="str">"doc3"</span>],
+)
+
+<span class="cm"># 语义搜索</span>
+results = collection.query(
+    query_texts=[<span class="str">"我想学一门适合数据科学的语言"</span>],
+    n_results=<span class="num">2</span>,
+    <span class="cm"># 加元数据过滤</span>
+    where={<span class="str">"source"</span>: <span class="str">"wiki"</span>},
+)
+<span class="bu">print</span>(results[<span class="str">"documents"</span>])   <span class="cm"># → 最相关的是 "Python 是一种解释型编程语言"</span>
+<span class="bu">print</span>(results[<span class="str">"distances"</span>])   <span class="cm"># → 距离（越小越相似）</span></code></pre>
+
+  <h3>2.3 Qdrant 生产部署</h3>
+  <pre><code><span class="kw">from</span> qdrant_client <span class="kw">import</span> QdrantClient
+<span class="kw">from</span> qdrant_client.models <span class="kw">import</span> Distance, VectorParams, PointStruct
+
+client = QdrantClient(host=<span class="str">"localhost"</span>, port=<span class="num">6333</span>)
+
+<span class="cm"># 创建 collection（必须指定向量维度）</span>
+client.create_collection(
+    collection_name=<span class="str">"agent_memory"</span>,
+    vectors_config=VectorParams(size=<span class="num">512</span>, distance=Distance.COSINE),
+)
+
+<span class="cm"># 批量插入（一次上千条）</span>
+points = [
+    PointStruct(
+        id=i,
+        vector=embedding,  <span class="cm"># 你事先算好的向量</span>
+        payload={<span class="str">"text"</span>: doc, <span class="str">"user_id"</span>: <span class="str">"user_123"</span>}
+    )
+    <span class="kw">for</span> i, (doc, embedding) <span class="kw">in</span> <span class="bu">enumerate</span>(docs_with_embeddings)
+]
+client.upsert(collection_name=<span class="str">"agent_memory"</span>, points=points)
+
+<span class="cm"># 搜索（带 payload 过滤）</span>
+results = client.search(
+    collection_name=<span class="str">"agent_memory"</span>,
+    query_vector=query_embedding,
+    limit=<span class="num">5</span>,
+    query_filter={
+        <span class="str">"must"</span>: [{<span class="str">"key"</span>: <span class="str">"user_id"</span>, <span class="str">"match"</span>: {<span class="str">"value"</span>: <span class="str">"user_123"</span>}}]
+    },
+)</code></pre>
+
+  <h3>2.4 索引类型选择</h3>
+  <table>
+    <tr><th>索引</th><th>延迟</th><th>召回率</th><th>内存</th><th>适合</th></tr>
+    <tr><td><strong>HNSW</strong> (分层可导航小世界图)</td><td>低</td><td>~95%</td><td>高</td><td>通用，速度快</td></tr>
+    <tr><td><strong>IVF</strong> (倒排文件)</td><td>中</td><td>~90-98%</td><td>中</td><td>大规模 (100万+)</td></tr>
+    <tr><td><strong>Flat</strong> (暴力搜索)</td><td>高 (线性)</td><td>100%</td><td>低</td><td>小数据集 (<1万)</td></tr>
+  </table>
+  <div class="callout good"><strong>经验法则：</strong>数据量 &lt; 10 万条 → Flat；10 万 ~ 100 万 → HNSW；&gt; 100 万 → IVF/HNSW + 分区。</div>
+</section>
+
+<!-- ═══ S3: RAG ═══ -->
+<section class="section" id="s3">
+  <h2><span class="s-num" style="background:var(--orange); color:#fff;">3</span>RAG 全链路</h2>
+  <p class="subtitle">RAG = Retrieval-Augmented Generation（检索增强生成）。核心思想：先把相关文档检索出来，塞进 LLM 的 context，让 LLM 基于这些文档回答。</p>
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;"><input type="checkbox" id="check-s3" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;"><label for="check-s3" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label></div>
+
+  <h3>3.1 RAG Pipeline 全貌</h3>
+  <div class="diagram">┌────────────────────────────────────────────────────────────┐
+│  <span class="kw">INDEXING (离线 / 文档导入时)</span>                              │
+│                                                             │
+│  文档 ──→ Text Splitter ──→ Embedder ──→ Vector DB         │
+│  PDF     Chunk 1 [vec1]                       存储 chunk + vector │
+│  HTML    Chunk 2 [vec2]                                    │
+│  Markdown Chunk 3 [vec3]                                   │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│  <span class="kw">RETRIEVAL (在线 / 每次查询时)</span>                              │
+│                                                             │
+│  用户问题 ──→ Embedder ──→ 向量搜索 ──→ Top-K chunks       │
+│              [query_vec]    Vector DB      ["文档1","文档3"...]│
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│  <span class="kw">GENERATION (增强生成)</span>                                    │
+│                                                             │
+│  System: "基于以下文档回答用户问题..."                        │
+│  Context: [文档1内容, 文档3内容, ...]                        │
+│  User: 用户原始问题                                          │
+│  ──→ LLM ──→ 基于真实文档的准确回答 ✅                      │
+└────────────────────────────────────────────────────────────┘</div>
+
+  <h3>3.2 文本切分策略</h3>
+  <pre><code><span class="kw">from</span> langchain.text_splitter <span class="kw">import</span> RecursiveCharacterTextSplitter
+
+<span class="cm"># ★ 最重要的超参数：chunk_size 和 chunk_overlap</span>
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=<span class="num">500</span>,          <span class="cm"># 每块最大字符数</span>
+    chunk_overlap=<span class="num">80</span>,        <span class="cm"># 块与块之间的重叠（防止切断语义）</span>
+    separators=[<span class="str">"\n\n"</span>, <span class="str">"\n"</span>, <span class="str">"。</span>", <span class="str">"."</span>, <span class="str">"；"</span>, <span class="str">";"</span>, <span class="str">" "</span>, <span class="str">""</span>],
+    <span class="cm"># ↑ 按优先级分割：先段落 → 换行 → 句号 → ...</span>
+)
+
+chunks = splitter.split_documents(documents)
+
+<span class="cm"># === 进阶：语义切分 (Semantic Chunking) ===</span>
+<span class="cm"># 不是按字符数切，而是按「语义转折点」切</span>
+<span class="cm"># 原理：计算每句的 embedding，句子间向量变化大的地方就是边界</span>
+<span class="kw">from</span> langchain_experimental.text_splitter <span class="kw">import</span> SemanticChunker
+semantic_splitter = SemanticChunker(
+    embedding_model,
+    breakpoint_threshold_type=<span class="str">"percentile"</span>,
+    breakpoint_threshold_amount=<span class="num">90</span>,  <span class="cm"># 90th percentile 的差异才切</span>
+)</code></pre>
+
+  <h3>3.3 完整 RAG 实现</h3>
+  <pre><code><span class="kw">class</span> <span class="tp">RAGPipeline</span>:
+    <span class="str">"""完整的 RAG Pipeline —— Index + Retrieve + Generate"""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, embedder, vector_db, llm):
+        <span class="kw">self</span>.embedder = embedder
+        <span class="kw">self</span>.db = vector_db
+        <span class="kw">self</span>.llm = llm
+
+    <span class="kw">async def</span> <span class="fn">index</span>(<span class="kw">self</span>, documents: <span class="tp">list</span>[<span class="tp">str</span>], metadatas: <span class="tp">list</span>[<span class="tp">dict</span>] = <span class="kw">None</span>):
+        <span class="str">"""离线：索引文档"""</span>
+        <span class="kw">for</span> doc, meta <span class="kw">in</span> <span class="bu">zip</span>(documents, metadatas <span class="kw">or</span> [{}]*<span class="bu">len</span>(documents)):
+            chunks = splitter.split_text(doc)
+            embeddings = <span class="kw">self</span>.embedder.embed_batch(chunks)
+            <span class="kw">self</span>.db.insert(chunks, embeddings, meta)
+
+    <span class="kw">async def</span> <span class="fn">query</span>(<span class="kw">self</span>, question: <span class="tp">str</span>, top_k: <span class="tp">int</span> = <span class="num">5</span>) -> <span class="tp">str</span>:
+        <span class="str">"""在线：检索 + 生成"""</span>
+
+        <span class="cm"># Step 1: 向量检索</span>
+        query_vec = <span class="kw">self</span>.embedder.embed(question)
+        retrieved = <span class="kw">self</span>.db.search(query_vec, k=top_k)
+
+        <span class="cm"># Step 2: 构造增强 prompt</span>
+        context = <span class="str">"\n\n---\n\n"</span>.join(r[<span class="str">"text"</span>] <span class="kw">for</span> r <span class="kw">in</span> retrieved)
+        system = <span class="str">f"""You are a knowledgeable assistant. Answer the user's question
+based ONLY on the provided context. If the context doesn't contain
+the information, say "I don't have enough information to answer."
+
+Context:
+</span>{context}<span class="str">"""</span>
+
+        <span class="cm"># Step 3: LLM 生成</span>
+        response = <span class="kw">await self</span>.llm.chat(messages=[
+            {<span class="str">"role"</span>: <span class="str">"system"</span>, <span class="str">"content"</span>: system},
+            {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: question},
+        ])
+
+        <span class="kw">return</span> response.content</code></pre>
+
+  <h3>3.4 RAG 高级技巧</h3>
+  <table>
+    <tr><th>技巧</th><th>原理</th><th>效果</th></tr>
+    <tr><td><strong>HyDE</strong> (假设文档嵌入)</td><td>让 LLM 先生成一份假答案 → 用假答案 embedding 去检索</td><td>召回率 +10-20%</td></tr>
+    <tr><td><strong>Re-ranking</strong></td><td>第一步检索 20 条 → 第二步用 Cross-Encoder 精确排 top-5</td><td>精度大幅提升</td></tr>
+    <tr><td><strong>混合检索</strong> (Hybrid)</td><td>向量检索 (语义) + BM25 (关键词) 加权合并</td><td>兼顾语义+精确匹配</td></tr>
+    <tr><td><strong>上下文压缩</strong></td><td>检索后让 LLM 从 chunk 中只提取与问题相关的句子</td><td>减少无关噪音</td></tr>
+    <tr><td><strong>Multi-Query</strong></td><td>用 LLM 把一个问题改写为 3-5 个变体 → 分别检索 → 去重合并</td><td>覆盖多种表述</td></tr>
+  </table>
+</section>
+
+<!-- ═══ S4: Agent 记忆系统 ═══ -->
+<section class="section" id="s4">
+  <h2><span class="s-num" style="background:var(--purple); color:#fff;">4</span>Agent 记忆系统</h2>
+  <p class="subtitle">RAG 解决外部知识，但 Agent 还需要自身的记忆——记住用户偏好、记住会话历史、记住学到的教训。</p>
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;"><input type="checkbox" id="check-s4" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;"><label for="check-s4" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label></div>
+
+  <h3>4.1 三层记忆架构</h3>
+  <div class="diagram">┌─────────────────────────────────────────────────────────┐
+│  <span class="kw">Layer 1: Working Memory (工作记忆)</span>                      │
+│  当前会话的 messages 数组 (in-context)                     │
+│  容量: 受 context window 限制                             │
+│  生命周期: 单次对话                                       │
+│  <span class="cm">"用户刚才说想学 Python"</span>                                │
+├─────────────────────────────────────────────────────────┤
+│  <span class="kw">Layer 2: Short-Term Memory (短期记忆)</span>                   │
+│  近期的会话摘要、关键决策 (存入向量库)                       │
+│  容量: 几千条                                             │
+│  生命周期: 几天到几周                                     │
+│  <span class="cm">"上周用户提到他在做 Web 开发项目"</span>                       │
+├─────────────────────────────────────────────────────────┤
+│  <span class="kw">Layer 3: Long-Term Memory (长期记忆)</span>                    │
+│  用户画像、持久偏好、学到的经验 (结构化存储)                 │
+│  容量: 理论上无限                                         │
+│  生命周期: 永久                                           │
+│  <span class="cm">"用户偏好：简洁回复、中文交互、Mac 环境"</span>                  │
+└─────────────────────────────────────────────────────────┘</div>
+
+  <h3>4.2 记忆管理器实现</h3>
+  <pre><code><span class="kw">class</span> <span class="tp">AgentMemory</span>:
+    <span class="str">"""Agent 的三层记忆系统"""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, embedder, vector_db, llm):
+        <span class="kw">self</span>.embedder = embedder
+        <span class="kw">self</span>.db = vector_db      <span class="cm"># Layer 2 + Layer 3 都存在这里</span>
+        <span class="kw">self</span>.llm = llm
+        <span class="kw">self</span>.working_memory = []  <span class="cm"># Layer 1: messages list</span>
+
+    <span class="cm"># === Layer 1: 会话内工作记忆 ===</span>
+    <span class="kw">def</span> <span class="fn">add_to_working</span>(<span class="kw">self</span>, role: <span class="tp">str</span>, content: <span class="tp">str</span>):
+        <span class="kw">self</span>.working_memory.append({<span class="str">"role"</span>: role, <span class="str">"content"</span>: content})
+        <span class="kw">self</span>._trim_if_needed()
+
+    <span class="kw">def</span> <span class="fn">_trim_if_needed</span>(<span class="kw">self</span>):
+        <span class="str">"""工作记忆超过 token 预算时自动压缩"""</span>
+        total_tokens = count_tokens(<span class="kw">self</span>.working_memory)
+        <span class="kw">if</span> total_tokens > MAX_WORKING_TOKENS:
+            <span class="cm"># 保留 system prompt + 最近 10 轮，其余用 LLM 摘要</span>
+            ...
+
+    <span class="cm"># === Layer 2: 短期记忆 (向量检索) ===</span>
+    <span class="kw">async def</span> <span class="fn">remember_short_term</span>(<span class="kw">self</span>, content: <span class="tp">str</span>, meta: <span class="tp">dict</span>):
+        <span class="str">"""把重要信息写入短期记忆"""</span>
+        embedding = <span class="kw">self</span>.embedder.embed(content)
+        <span class="kw">self</span>.db.insert(
+            text=content,
+            vector=embedding,
+            metadata={**meta, <span class="str">"type"</span>: <span class="str">"short_term"</span>, <span class="str">"ts"</span>: time.time()},
+        )
+
+    <span class="kw">async def</span> <span class="fn">recall_short_term</span>(<span class="kw">self</span>, query: <span class="tp">str</span>, k=<span class="num">5</span>) -> <span class="tp">list</span>[<span class="tp">str</span>]:
+        <span class="str">"""检索相关的短期记忆"""</span>
+        query_vec = <span class="kw">self</span>.embedder.embed(query)
+        results = <span class="kw">self</span>.db.search(query_vec, k=k)
+        <span class="kw">return</span> [r[<span class="str">"text"</span>] <span class="kw">for</span> r <span class="kw">in</span> results]
+
+    <span class="cm"># === Layer 3: 长期记忆 (结构化持久化) ===</span>
+    <span class="kw">async def</span> <span class="fn">persist_long_term</span>(<span class="kw">self</span>, user_id: <span class="tp">str</span>, fact: <span class="tp">str</span>):
+        <span class="str">"""持久化长期事实（用户画像、偏好等）"""</span>
+        <span class="kw">self</span>.db.insert(text=fact, vector=<span class="kw">None</span>,
+                       metadata={<span class="str">"type"</span>: <span class="str">"long_term"</span>, <span class="str">"user_id"</span>: user_id})</code></pre>
+
+  <h3>4.3 记忆的生命周期管理</h3>
+  <table>
+    <tr><th>操作</th><th>触发时机</th><th>实现</th></tr>
+    <tr><td><strong>写入</strong></td><td>每轮对话结束 / 用户说"记住这个" / LLM 判断重要</td><td>异步写入向量库</td></tr>
+    <tr><td><strong>检索</strong></td><td>每次新请求开始时，用当前问题检索相关记忆</td><td>向量搜索 + 注入 system prompt</td></tr>
+    <tr><td><strong>遗忘</strong></td><td>短期记忆过期 (TTL)；用户要求删除</td><td>按时间戳过滤 + metadata 标记</td></tr>
+    <tr><td><strong>合并</strong></td><td>发现重复/矛盾记忆时</td><td>LLM 判断 → 去重 → 合并为新版本</td></tr>
+    <tr><td><strong>升级</strong></td><td>短期记忆被反复检索 → 升级为长期记忆</td><td>访问频率加权 + 阈值触发</td></tr>
+  </table>
+
+  <h3>4.4 记忆注入 Agent Context</h3>
+  <pre><code><span class="kw">async def</span> <span class="fn">build_agent_context</span>(memory: AgentMemory, user_input: <span class="tp">str</span>) -> <span class="tp">list</span>:
+    <span class="str">"""构建 Agent 的完整 context（融合三层记忆）"""</span>
+
+    messages = []
+
+    <span class="cm"># 1. System Prompt</span>
+    system = <span class="str">"You are a helpful assistant."</span>
+
+    <span class="cm"># 2. 注入长期记忆（用户画像）</span>
+    long_term = memory.db.search(<span class="str">"user profile"</span>, filter={<span class="str">"type"</span>: <span class="str">"long_term"</span>})
+    <span class="kw">if</span> long_term:
+        system += <span class="str">"\n\n## User Profile\n"</span> + <span class="str">"\n"</span>.join(<span class="str">f"- </span>{m}<span class="str">"</span> <span class="kw">for</span> m <span class="kw">in</span> long_term)
+    messages.append({<span class="str">"role"</span>: <span class="str">"system"</span>, <span class="str">"content"</span>: system})
+
+    <span class="cm"># 3. 检索相关短期记忆</span>
+    recalled = <span class="kw">await</span> memory.recall_short_term(user_input, k=<span class="num">3</span>)
+    <span class="kw">if</span> recalled:
+        messages.append({<span class="str">"role"</span>: <span class="str">"system"</span>, <span class="str">"content"</span>:
+            <span class="str">f"## Related Memories\n"</span> + <span class="str">"\n"</span>.join(<span class="str">f"- </span>{r}<span class="str">"</span> <span class="kw">for</span> r <span class="kw">in</span> recalled)})
+
+    <span class="cm"># 4. 工作记忆（最近对话）</span>
+    messages.extend(memory.working_memory)
+
+    <span class="cm"># 5. 当前用户输入</span>
+    messages.append({<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: user_input})
+
+    <span class="kw">return</span> messages</code></pre>
+</section>
+
+<!-- ═══ S5: 多模态检索 ═══ -->
+<section class="section" id="s5">
+  <h2><span class="s-num" style="background:var(--pink); color:#fff;">5</span>多模态检索</h2>
+  <p class="subtitle">Agent 不仅要检索文本，还要能「看懂」图片、搜索视频、理解音频。多模态 RAG 是下一代 Agent 的标配。</p>
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;"><input type="checkbox" id="check-s5" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;"><label for="check-s5" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label></div>
+
+  <h3>5.1 多模态 Embedding</h3>
+  <table>
+    <tr><th>模型</th><th>支持模态</th><th>维度</th><th>特点</th></tr>
+    <tr><td>CLIP (OpenAI)</td><td>文本 + 图像</td><td>512/768</td><td>开源标杆，文本搜图/图搜图</td></tr>
+    <tr><td>SigLIP</td><td>文本 + 图像</td><td>768</td><td>比 CLIP 更好</td></tr>
+    <tr><td>ImageBind (Meta)</td><td>图 + 文 + 音 + 深度 + 热力 + IMU</td><td>1024</td><td>六模态统一空间</td></tr>
+    <tr><td>jina-clip-v2</td><td>文本 + 图像</td><td>1024</td><td>89B 训练数据，多语言</td></tr>
+    <tr><td>Weaviate Multimodal</td><td>文本 + 图像 + 音频</td><td>—</td><td>混合检索原生支持</td></tr>
+  </table>
+
+  <h3>5.2 CLIP 实战：以文搜图</h3>
+  <pre><code><span class="kw">from</span> transformers <span class="kw">import</span> CLIPProcessor, CLIPModel
+<span class="kw">from</span> PIL <span class="kw">import</span> Image
+
+model = CLIPModel.from_pretrained(<span class="str">"openai/clip-vit-base-patch32"</span>)
+processor = CLIPProcessor.from_pretrained(<span class="str">"openai/clip-vit-base-patch32"</span>)
+
+<span class="cm"># 索引：图像 → 向量</span>
+<span class="kw">def</span> <span class="fn">encode_image</span>(image_path: <span class="tp">str</span>) -> <span class="tp">list</span>[<span class="tp">float</span>]:
+    img = Image.open(image_path)
+    inputs = processor(images=img, return_tensors=<span class="str">"pt"</span>)
+    <span class="kw">with</span> torch.no_grad():
+        emb = model.get_image_features(**inputs)
+    <span class="kw">return</span> emb[<span class="num">0</span>].numpy().tolist()
+
+<span class="cm"># 搜索：文本 → 向量 → 找最相似图片</span>
+<span class="kw">def</span> <span class="fn">encode_text</span>(text: <span class="tp">str</span>) -> <span class="tp">list</span>[<span class="tp">float</span>]:
+    inputs = processor(text=[text], return_tensors=<span class="str">"pt"</span>)
+    <span class="kw">with</span> torch.no_grad():
+        emb = model.get_text_features(**inputs)
+    <span class="kw">return</span> emb[<span class="num">0</span>].numpy().tolist()</code></pre>
+
+  <h3>5.3 Agent 中的多模态 RAG 流程</h3>
+  <div class="diagram">用户: "上次发给我的那个架构图里，数据库在哪个位置？"
+
+Step 1: 文本 Embedding → 在图像描述向量库中找到"架构图"
+Step 2: 取出图像 → 发给 Vision LLM (gpt-4o / Claude Vision) 
+Step 3: Vision LLM: "数据库位于图的右下角，标注为 'PostgreSQL Cluster'"
+Step 4: 返回给用户: "数据库在你上次的架构图的右下角，标注为 PostgreSQL Cluster"</div>
+</section>
+
+<!-- ═══ 综合实践 ═══ -->
+<section class="section" id="practice" style="border-bottom: none;">
+  <h2><span class="s-num" style="background:var(--green); color:#fff;">🏗</span>综合实践：RAG + 记忆系统</h2>
+  <p class="subtitle">构建完整的文档 RAG 系统 + Agent 三层记忆。</p>
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;"><input type="checkbox" id="check-practice" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;"><label for="check-practice" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label></div>
+  <pre><code>rag-memory-system/
+├── core/
+│   ├── embedder.py        <span class="cm"># Embedding 抽象 (OpenAI + 本地 fallback)</span>
+│   ├── vector_store.py    <span class="cm"># ChromaDB / Qdrant 抽象</span>
+│   └── splitter.py        <span class="cm"># 文本切分 + 语义切分</span>
+├── rag/
+│   ├── pipeline.py        <span class="cm"># RAG 全链路</span>
+│   ├── re_ranker.py       <span class="cm"># Cross-Encoder 重排序</span>
+│   └── hybrid_search.py   <span class="cm"># 混合检索</span>
+├── memory/
+│   ├── working.py         <span class="cm"># Layer 1: 工作记忆</span>
+│   ├── short_term.py      <span class="cm"># Layer 2: 短期记忆</span>
+│   ├── long_term.py       <span class="cm"># Layer 3: 长期记忆</span>
+│   └── manager.py         <span class="cm"># 记忆整合管理器</span>
+├── multimodal/
+│   └── clip_search.py     <span class="cm"># 多模态检索</span>
+└── examples/</code></pre>
+  <table>
+    <tr><th>#</th><th>功能</th><th>验收标准</th></tr>
+    <tr><td>1</td><td>文档索引</td><td>支持 PDF/Markdown/TXT，语义切分</td></tr>
+    <tr><td>2</td><td>向量检索</td><td>语义搜索 + Hybrid (BM25 + 向量)</td></tr>
+    <tr><td>3</td><td>RAG 生成</td><td>检索 → 注入 context → LLM 生成，支持来源引用</td></tr>
+    <tr><td>4</td><td>工作记忆</td><td>会话内 messages 管理 + 自动压缩</td></tr>
+    <tr><td>5</td><td>短期记忆</td><td>异步写入向量库 + 语义检索</td></tr>
+    <tr><td>6</td><td>长期记忆</td><td>用户画像持久化 + 自动合并去重</td></tr>
+  </table>
+  <div class="callout good"><strong>阶段 4 毕业标准：</strong>构建完整的 RAG 管道 + Agent 三层记忆系统。</div>
+</section>
+
+<div class="nav-footer">
+  <a href="file:///D:/Hermes/workspace/agent-backend-learning/03-agent-core/phase3.html">← 阶段 3：Agent 核心架构</a>
+  <a href="file:///D:/Hermes/workspace/agent-backend-learning/05-tools-sandbox/phase5.html" style="color:var(--accent);">阶段 5：工具生态 & 安全沙箱 →</a>
+</div>
+</main></div>
+<script>
+const SIDS=['s1','s2','s3','s4','s5','practice'];
+function updateProgress(){let done=0;SIDS.forEach(id=>{const cb=document.getElementById('check-'+id);const badge=document.getElementById('badge-'+id);if(cb&&cb.checked){done++;if(badge){badge.textContent='✓';badge.className='badge done'}}else{if(badge){badge.textContent='';badge.className='badge'}}});document.getElementById('progress-fill').style.width=(done/SIDS.length*100).toFixed(0)+'%';document.getElementById('progress-text').textContent=done+'/'+SIDS.length;const s={};SIDS.forEach(id=>{const cb=document.getElementById('check-'+id);if(cb)s[id]=cb.checked});localStorage.setItem('agent-phase4-progress',JSON.stringify(s))}
+function loadProgress(){const saved=localStorage.getItem('agent-phase4-progress');if(!saved)return;const state=JSON.parse(saved);SIDS.forEach(id=>{if(state[id]!==undefined){const cb=document.getElementById('check-'+id);if(cb)cb.checked=state[id]}});updateProgress()}
+function updateActiveNav(){const sections=SIDS.map(id=>document.getElementById(id));let cur=SIDS[0];sections.forEach((sec,i)=>{if(!sec)return;if(sec.getBoundingClientRect().top<=150)cur=SIDS[i]});document.querySelectorAll('.sidebar nav a').forEach(a=>{a.classList.remove('active');if(a.getAttribute('data-section')===cur)a.classList.add('active')})}
+window.addEventListener('scroll',updateActiveNav);window.addEventListener('load',()=>{loadProgress();updateActiveNav()});
+</script></body></html>

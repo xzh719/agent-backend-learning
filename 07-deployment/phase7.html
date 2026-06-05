@@ -1,0 +1,180 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>阶段7：部署 & 生产化 —— AI Agent 后端学习</title>
+<style>:root{--bg:#0d1117;--bg-card:#161b22;--bg-hover:#1c2129;--bg-code:#0d1117;--border:#30363d;--text:#c9d1d9;--text-muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--orange:#d2991d;--purple:#a371f7;--red:#f85149;--cyan:#39d2c0;--pink:#db61a2}*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);line-height:1.7}.layout{display:flex;min-height:100vh}.sidebar{width:280px;flex-shrink:0;background:var(--bg-card);border-right:1px solid var(--border);padding:2rem 1.5rem;position:sticky;top:0;height:100vh;overflow-y:auto}.sidebar h3{font-size:.85rem;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.8rem}.sidebar .phase-title{font-size:1.1rem;font-weight:600;margin-bottom:1.5rem}.sidebar nav{display:flex;flex-direction:column;gap:.3rem}.sidebar nav a{color:var(--text-muted);text-decoration:none;font-size:.88rem;padding:.45rem .7rem;border-radius:6px;transition:all .15s;border-left:2px solid transparent}.sidebar nav a:hover{color:var(--text);background:var(--bg-hover)}.sidebar nav a.active{color:var(--accent);background:rgba(88,166,255,.08);border-left-color:var(--accent)}.sidebar .badge{display:inline-block;font-size:.7rem;padding:.12rem .4rem;border-radius:4px;margin-left:.3rem;background:var(--border);color:var(--text-muted)}.sidebar .badge.done{background:rgba(63,185,80,.15);color:var(--green)}.main{flex:1;padding:2.5rem 3rem;max-width:960px}.section{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}.section:last-child{border-bottom:none}.section h2{font-size:1.65rem;margin-bottom:.5rem;display:flex;align-items:center;gap:.7rem}.section .s-num{width:36px;height:36px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;flex-shrink:0}.section .subtitle{color:var(--text-muted);font-size:.9rem;margin-bottom:1.8rem}h3{font-size:1.2rem;margin:1.8rem 0 .7rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h4{font-size:1rem;margin:1.4rem 0 .5rem;color:var(--accent)}p{margin-bottom:.8rem;color:var(--text-muted)}ul,ol{margin:.5rem 0 1rem 1.5rem;color:var(--text-muted)}li{margin-bottom:.25rem}pre{background:var(--bg-code);border:1px solid var(--border);border-radius:8px;padding:1.2rem 1.4rem;margin:1rem 0 1.5rem;overflow-x:auto;font-size:.82rem;line-height:1.55;font-family:'JetBrains Mono','Fira Code','Cascadia Code','Consolas',monospace}pre code{color:#c9d1d9}code{font-family:'JetBrains Mono','Fira Code','Cascadia Code','Consolas',monospace;font-size:.85em;background:rgba(110,118,129,.15);padding:.15em .4em;border-radius:4px}pre code{background:none;padding:0;font-size:inherit}.kw{color:#ff7b72}.str{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.fn{color:#d2a8ff}.num{color:#79c0ff}.tp{color:#7ee787}.callout{border-left:3px solid var(--accent);background:rgba(88,166,255,.06);padding:.8rem 1.2rem;border-radius:0 6px 6px 0;margin:1.2rem 0;font-size:.9rem}.callout.warn{border-color:var(--orange);background:rgba(210,153,29,.06)}.callout.good{border-color:var(--green);background:rgba(63,185,80,.06)}.callout strong{color:var(--text)}table{width:100%;border-collapse:collapse;margin:1rem 0 1.5rem;font-size:.88rem}th,td{text-align:left;padding:.6rem .9rem;border-bottom:1px solid var(--border)}th{color:var(--accent);font-weight:600}td{color:var(--text-muted)}.diagram{background:var(--bg-code);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1rem 0;font-family:monospace;font-size:.82rem;white-space:pre;overflow-x:auto;color:var(--text-muted);line-height:1.5}.nav-footer{display:flex;justify-content:space-between;align-items:center;margin-top:3rem;padding-top:2rem;border-top:1px solid var(--border)}.nav-footer a{color:var(--accent);text-decoration:none;font-size:.9rem;padding:.5rem 1rem;border:1px solid var(--border);border-radius:6px;transition:all .15s}.nav-footer a:hover{background:var(--bg-hover);border-color:var(--accent)}.progress{display:flex;align-items:center;gap:.8rem;margin-bottom:1.2rem;font-size:.85rem;color:var(--text-muted)}.progress-bar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}.progress-fill{height:100%;background:var(--green);border-radius:2px;transition:width .3s}@media(max-width:860px){.layout{flex-direction:column}.sidebar{width:100%;height:auto;position:static;border-right:none;border-bottom:1px solid var(--border);padding:1.2rem}.sidebar nav{flex-direction:row;flex-wrap:wrap}.main{padding:1.5rem}}html{scroll-behavior:smooth}</style></head><body>
+<div class="layout"><aside class="sidebar"><h3>AI Agent 后端学习</h3><div class="phase-title">阶段 7：部署 &amp; 生产化</div><div class="progress"><span>进度</span><div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div><span id="progress-text">0/5</span></div><nav><a href="#s1" data-section="s1">1. Docker 容器化 <span class="badge" id="badge-s1"></span></a><a href="#s2" data-section="s2">2. 消息队列集成 <span class="badge" id="badge-s2"></span></a><a href="#s3" data-section="s3">3. 高可用架构 <span class="badge" id="badge-s3"></span></a><a href="#s4" data-section="s4">4. CI/CD 流水线 <span class="badge" id="badge-s4"></span></a><a href="#s5" data-section="s5">5. 最终项目 <span class="badge" id="badge-s5"></span></a><a href="#practice" data-section="practice" style="margin-top:.8rem;color:var(--green)">🏗 综合实践</a></nav></aside><main class="main">
+<div style="margin-bottom:3rem"><p style="color:var(--text-muted);font-size:.85rem;margin-bottom:.3rem">← <a href="file:///D:/Hermes/workspace/agent-backend-roadmap.html" style="color:var(--cyan)">总路线图</a> | <a href="file:///D:/Hermes/workspace/agent-backend-learning/06-observability/phase6.html" style="color:var(--cyan)">← 阶段6</a></p><h1 style="font-size:2rem;background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent">阶段 7：部署 &amp; 生产化</h1><p style="color:var(--text-muted)">Docker 容器化、消息队列、高可用、CI/CD、最终项目 —— Agent 从开发环境走向生产</p><p style="color:var(--text-muted);font-size:.85rem">⏱ 预计 2 周 | 📚 5 个核心主题</p></div>
+
+<div class="callout"><strong>学习路径逻辑：</strong>代码写好了，怎么让它 7×24 小时稳定运行？<strong>Docker 化</strong>解决环境一致性问题 → <strong>消息队列</strong>解决异步任务和高并发 → <strong>高可用</strong>保证服务不挂 → <strong>CI/CD</strong> 自动化测试部署 → <strong>最终项目</strong>串联全部 7 个阶段的知识。</div>
+
+<section class="section" id="s1"><h2><span class="s-num" style="background:var(--accent);color:#fff">1</span>Docker 容器化</h2><p class="subtitle">Agent 后端依赖 Python 版本、系统库、GPU 驱动... 用 Docker 一键打包，到处运行。</p><div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem"><input type="checkbox" id="check-s1" onchange="updateProgress()" style="width:18px;height:18px;accent-color:var(--green);cursor:pointer"><label for="check-s1" style="font-size:.9rem;color:var(--text-muted);cursor:pointer">标记为已完成</label></div>
+<h3>Dockerfile 最佳实践</h3>
+<pre><code><span class="cm"># 多阶段构建 —— 最终镜像尽量小</span>
+<span class="kw">FROM</span> python:3.11-slim AS builder
+<span class="kw">WORKDIR</span> /app
+<span class="kw">COPY</span> requirements.txt .
+<span class="kw">RUN</span> pip install --no-cache-dir -r requirements.txt
+
+<span class="kw">FROM</span> python:3.11-slim
+<span class="kw">RUN</span> useradd --create-home agentuser
+<span class="kw">USER</span> agentuser
+<span class="kw">WORKDIR</span> /app
+<span class="kw">COPY</span> --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+<span class="kw">COPY</span> . .
+<span class="kw">EXPOSE</span> 8000
+<span class="kw">HEALTHCHECK</span> --interval=30s --timeout=5s CMD curl -f http://localhost:8000/health || exit 1
+<span class="kw">CMD</span> ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]</code></pre>
+<h3>Docker Compose 全家桶</h3>
+<pre><code><span class="cm"># docker-compose.yml —— Agent 全栈一键启动</span>
+<span class="kw">services</span>:
+  <span class="kw">agent-api</span>:
+    <span class="kw">build</span>: .
+    <span class="kw">ports</span>: ["8000:8000"]
+    <span class="kw">env_file</span>: .env
+    <span class="kw">depends_on</span>: [qdrant, redis]
+  <span class="kw">qdrant</span>:
+    <span class="kw">image</span>: qdrant/qdrant
+    <span class="kw">volumes</span>: [qdrant_data:/qdrant/storage]
+  <span class="kw">redis</span>:
+    <span class="kw">image</span>: redis:7-alpine
+  <span class="kw">grafana</span>:
+    <span class="kw">image</span>: grafana/grafana
+    <span class="kw">ports</span>: ["3000:3000"]</code></pre>
+</section>
+
+<section class="section" id="s2"><h2><span class="s-num" style="background:var(--green);color:#fff">2</span>消息队列集成</h2><p class="subtitle">Agent 的 LLM 调用可能耗时几十秒。不能让用户的 HTTP 请求干等。消息队列实现异步任务处理。</p><div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem"><input type="checkbox" id="check-s2" onchange="updateProgress()" style="width:18px;height:18px;accent-color:var(--green);cursor:pointer"><label for="check-s2" style="font-size:.9rem;color:var(--text-muted);cursor:pointer">标记为已完成</label></div>
+<h3>Celery + Redis 异步任务</h3>
+<pre><code><span class="kw">from</span> celery <span class="kw">import</span> Celery
+
+celery_app = Celery(<span class="str">'agent'</span>, broker=<span class="str">'redis://redis:6379/0'</span>)
+
+<span class="de">@celery_app.task</span>(bind=<span class="kw">True</span>, max_retries=<span class="num">3</span>)
+<span class="kw">def</span> <span class="fn">run_agent_task</span>(<span class="kw">self</span>, session_id, user_input):
+    <span class="kw">try</span>:
+        agent = AgentLoop(...)
+        <span class="kw">return await</span> agent.run(user_input)
+    <span class="kw">except</span> <span class="tp">Exception</span> <span class="kw">as</span> e:
+        <span class="kw">self</span>.retry(exc=e, countdown=<span class="num">10</span>)
+
+<span class="cm"># FastAPI 路由: 立即返回 task_id，由 WebSocket 推送结果</span>
+<span class="de">@app.post</span>(<span class="str">"/tasks"</span>)
+<span class="kw">async def</span> <span class="fn">create_task</span>(req: TaskRequest):
+    task = run_agent_task.delay(req.session_id, req.input)
+    <span class="kw">return</span> {<span class="str">"task_id"</span>: task.id}</code></pre>
+<h3>WebSocket 结果推送</h3>
+<div class="diagram">Client                    FastAPI                    Celery Worker
+  │                          │                            │
+  │ POST /tasks              │                            │
+  │─────────────────────────>│                            │
+  │          {task_id: "abc"}│                            │
+  │<─────────────────────────│  task = agent.delay(...)  │
+  │                          │───────────────────────────>│
+  │                          │                            │── LLM call (30s)
+  │ WS /tasks/abc/status     │                            │
+  │<═════════════════════════│                            │
+  │  [status: "processing"]  │                            │
+  │                          │     task result            │
+  │                          │<───────────────────────────│
+  │ [status: "done", result] │                            │
+  │<═════════════════════════│                            │</div>
+</section>
+
+<section class="section" id="s3"><h2><span class="s-num" style="background:var(--orange);color:#fff">3</span>高可用架构</h2><p class="subtitle">Agent 服务不能挂。单点故障 = 用户体验归零。高可用是生产环境的及格线。</p><div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem"><input type="checkbox" id="check-s3" onchange="updateProgress()" style="width:18px;height:18px;accent-color:var(--green);cursor:pointer"><label for="check-s3" style="font-size:.9rem;color:var(--text-muted);cursor:pointer">标记为已完成</label></div>
+<h3>生产架构图</h3>
+<div class="diagram">                    ┌──────────┐
+                    │ Nginx LB │ (负载均衡 + HTTPS 终结)
+                    └────┬─────┘
+               ┌─────────┼─────────┐
+               ▼         ▼         ▼
+          ┌────────┐┌────────┐┌────────┐
+          │Agent 1 ││Agent 2 ││Agent 3 │ (多副本)
+          └───┬────┘└───┬────┘└───┬────┘
+              │         │         │
+              └─────────┼─────────┘
+                        │
+          ┌─────────────┼─────────────┐
+          ▼             ▼             ▼
+     ┌─────────┐  ┌─────────┐  ┌──────────┐
+     │ Redis   │  │ Qdrant  │  │PostgreSQL│
+     │(缓存/MQ)│  │(向量库) │  │(业务数据) │
+     └─────────┘  └─────────┘  └──────────┘</div>
+<h3>关键高可用措施</h3><table><tr><th>组件</th><th>措施</th></tr><tr><td>Agent API</td><td>至少 2 副本 + health check + graceful shutdown</td></tr><tr><td>Redis</td><td>Sentinel 哨兵模式 (主从 + 自动故障转移)</td></tr><tr><td>PostgreSQL</td><td>流复制 (Primary + Standby)</td></tr><tr><td>Qdrant</td><td>集群模式 (3 节点)</td></tr><tr><td>LLM Provider</td><td>多 Provider 故障转移 (OpenAI → DeepSeek → Anthropic)</td></tr></table>
+</section>
+
+<section class="section" id="s4"><h2><span class="s-num" style="background:var(--purple);color:#fff">4</span>CI/CD 流水线</h2><p class="subtitle">手动部署 = 人肉出错。CI/CD 让测试、构建、部署全自动化。</p><div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem"><input type="checkbox" id="check-s4" onchange="updateProgress()" style="width:18px;height:18px;accent-color:var(--green);cursor:pointer"><label for="check-s4" style="font-size:.9rem;color:var(--text-muted);cursor:pointer">标记为已完成</label></div>
+<div class="diagram">Push to main ──> CI Pipeline:
+  ① Lint (ruff, mypy)
+  ② Unit Tests (pytest)
+  ③ Eval Tests (Agent accuracy check)
+  ④ Docker Build
+  ⑤ Push to Registry
+  ⑥ Deploy (kubectl apply / docker compose up -d)
+  ⑦ Smoke Test (health check + 基础功能验证)
+  ⑧ Notify (Slack/Discord)</div>
+<h3>GitHub Actions 示例</h3>
+<pre><code><span class="kw">name</span>: Deploy Agent
+<span class="kw">on</span>:
+  <span class="kw">push</span>:
+    <span class="kw">branches</span>: [main]
+<span class="kw">jobs</span>:
+  <span class="kw">test-and-deploy</span>:
+    <span class="kw">runs-on</span>: ubuntu-latest
+    <span class="kw">steps</span>:
+      - <span class="kw">uses</span>: actions/checkout@v4
+      - <span class="kw">uses</span>: actions/setup-python@v5
+        <span class="kw">with</span>: {<span class="kw">python-version</span>: <span class="str">"3.11"</span>}
+      - <span class="kw">run</span>: pip install -r requirements.txt && pytest
+      - <span class="kw">run</span>: docker build -t agent-api .
+      - <span class="kw">run</span>: docker push registry.example.com/agent-api:latest</code></pre>
+</section>
+
+<section class="section" id="s5"><h2><span class="s-num" style="background:var(--pink);color:#fff">5</span>最终项目：生产级 Agent 平台</h2><p class="subtitle">串联全部 7 个阶段的知识，构建一个真实可用的 Agent 平台。</p><div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem"><input type="checkbox" id="check-s5" onchange="updateProgress()" style="width:18px;height:18px;accent-color:var(--green);cursor:pointer"><label for="check-s5" style="font-size:.9rem;color:var(--text-muted);cursor:pointer">标记为已完成</label></div>
+<h3>完整项目结构</h3>
+<pre><code>agent-platform/
+├── api/                    <span class="cm"># 阶段1: FastAPI + WebSocket + SSE</span>
+│   ├── routes/             <span class="cm"># REST + WS + SSE endpoints</span>
+│   └── middleware/          <span class="cm"># JWT Auth + Rate Limiting</span>
+├── core/                   <span class="cm"># 阶段3: Agent Loop + State Machine</span>
+│   ├── agent_loop.py       <span class="cm"># ReAct 引擎</span>
+│   ├── orchestrator.py     <span class="cm"># 多 Agent 协调</span>
+│   └── plan_executor.py    <span class="cm"># Plan + DAG 执行</span>
+├── llm/                    <span class="cm"># 阶段2: 多 Provider 统一客户端</span>
+│   ├── providers/          <span class="cm"># OpenAI/Anthropic/DeepSeek</span>
+│   ├── token_manager.py    <span class="cm"># Token 预算 + 成本追踪</span>
+│   └── structured_output.py <span class="cm"># JSON Schema + Tool Calling</span>
+├── memory/                 <span class="cm"># 阶段4: 三层记忆 + RAG</span>
+│   ├── working.py
+│   ├── short_term.py
+│   ├── long_term.py
+│   └── rag_pipeline.py
+├── tools/                  <span class="cm"># 阶段5: 工具生态 + 沙箱</span>
+│   ├── registry.py
+│   ├── sandbox/
+│   └── integrations/
+├── observability/          <span class="cm"># 阶段6: 追踪 + 日志 + 评估</span>
+│   ├── tracing.py
+│   ├── logging.py
+│   └── eval/
+├── deploy/                 <span class="cm"># 阶段7: 部署</span>
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   └── k8s/
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   └── eval/
+└── .github/workflows/      <span class="cm"># CI/CD</span></code></pre>
+<h3>平台核心功能</h3><table><tr><th>功能</th><th>技术栈</th><th>对应阶段</th></tr><tr><td>HTTP/WS/SSE API</td><td>FastAPI + WebSocket + SSE</td><td>1</td></tr><tr><td>多 Provider LLM 调用</td><td>aiohttp + AsyncOpenAI + Anthropic SDK</td><td>2</td></tr><tr><td>ReAct Agent Loop</td><td>Python asyncio + state machine</td><td>3</td></tr><tr><td>RAG + Agent 记忆</td><td>ChromaDB/Qdrant + sentence-transformers</td><td>4</td></tr><tr><td>安全工具执行</td><td>Docker SDK + RBAC + OAuth 2.0</td><td>5</td></tr><tr><td>全链路可观测</td><td>LangFuse + structlog + Grafana</td><td>6</td></tr><tr><td>容器化部署</td><td>Docker + Redis + Nginx + CI/CD</td><td>7</td></tr></table>
+</section>
+
+<section class="section" id="practice" style="border-bottom:none"><h2><span class="s-num" style="background:var(--green);color:#fff">🎉</span>学习路线完成！</h2><p class="subtitle">7 个阶段，12-16 周，从 HTTP 协议到生产级 Agent 平台。</p>
+<div class="callout good"><strong>你已经掌握了：</strong><br>① Agent 底层通信协议 (HTTP/WS/SSE) → ② LLM 原理与多 Provider API → ③ Agent 核心架构 (ReAct/Plan/MCP) → ④ 记忆系统与 RAG → ⑤ 工具生态与安全沙箱 → ⑥ 可观测性与评估 → ⑦ 生产部署与运维<br><br><strong>下一步：</strong>选择一个真实场景，用这个知识体系构建你的第一个 Agent 产品。最好的学习方式是动手做。</div>
+</section>
+
+<div class="nav-footer"><a href="file:///D:/Hermes/workspace/agent-backend-learning/06-observability/phase6.html">← 阶段 6：可观测性 & 评估</a><a href="file:///D:/Hermes/workspace/agent-backend-roadmap.html" style="color:var(--green);">返回总路线图 ↑</a></div>
+</main></div>
+<script>
+const SIDS=['s1','s2','s3','s4','s5','practice'];
+function updateProgress(){let done=0;SIDS.forEach(id=>{const cb=document.getElementById('check-'+id);const badge=document.getElementById('badge-'+id);if(cb&&cb.checked){done++;if(badge){badge.textContent='✓';badge.className='badge done'}}else{if(badge){badge.textContent='';badge.className='badge'}}});document.getElementById('progress-fill').style.width=(done/SIDS.length*100).toFixed(0)+'%';document.getElementById('progress-text').textContent=done+'/'+SIDS.length;const s={};SIDS.forEach(id=>{const cb=document.getElementById('check-'+id);if(cb)s[id]=cb.checked});localStorage.setItem('agent-phase7-progress',JSON.stringify(s))}
+function loadProgress(){const saved=localStorage.getItem('agent-phase7-progress');if(!saved)return;const state=JSON.parse(saved);SIDS.forEach(id=>{if(state[id]!==undefined){const cb=document.getElementById('check-'+id);if(cb)cb.checked=state[id]}});updateProgress()}
+function updateActiveNav(){const sections=SIDS.map(id=>document.getElementById(id));let cur=SIDS[0];sections.forEach((sec,i)=>{if(!sec)return;if(sec.getBoundingClientRect().top<=150)cur=SIDS[i]});document.querySelectorAll('.sidebar nav a').forEach(a=>{a.classList.remove('active');if(a.getAttribute('data-section')===cur)a.classList.add('active')})}
+window.addEventListener('scroll',updateActiveNav);window.addEventListener('load',()=>{loadProgress();updateActiveNav()});
+</script></body></html>

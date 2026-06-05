@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段1：后端基础 & 网络协议 —— AI Agent 后端学习</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-card: #161b22;
+    --bg-hover: #1c2129;
+    --bg-code: #0d1117;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --orange: #d2991d;
+    --purple: #a371f7;
+    --red: #f85149;
+    --cyan: #39d2c0;
+    --pink: #db61a2;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.7;
+  }
+
+  /* ── Sidebar ── */
+  .layout { display:flex; min-height:100vh; }
+  .sidebar {
+    width: 280px; flex-shrink:0; background: var(--bg-card);
+    border-right: 1px solid var(--border); padding: 2rem 1.5rem;
+    position: sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .sidebar h3 {
+    font-size: 0.85rem; color: var(--accent); text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: 0.8rem;
+  }
+  .sidebar .phase-title {
+    font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem;
+  }
+  .sidebar nav { display:flex; flex-direction:column; gap: 0.3rem; }
+  .sidebar nav a {
+    color: var(--text-muted); text-decoration: none; font-size: 0.88rem;
+    padding: 0.45rem 0.7rem; border-radius: 6px; transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+  .sidebar nav a:hover { color: var(--text); background: var(--bg-hover); }
+  .sidebar nav a.active {
+    color: var(--accent); background: rgba(88,166,255,0.08);
+    border-left-color: var(--accent);
+  }
+  .sidebar .badge {
+    display: inline-block; font-size: 0.7rem; padding: 0.12rem 0.4rem;
+    border-radius: 4px; margin-left: 0.3rem; background: var(--border); color: var(--text-muted);
+  }
+  .sidebar .badge.done { background: rgba(63,185,80,0.15); color: var(--green); }
+
+  /* ── Main content ── */
+  .main { flex:1; padding: 2.5rem 3rem; max-width: 960px; }
+  .section { margin-bottom: 4rem; padding-bottom: 3rem; border-bottom: 1px solid var(--border); }
+  .section:last-child { border-bottom: none; }
+
+  .section h2 {
+    font-size: 1.65rem; margin-bottom: 0.5rem;
+    display: flex; align-items: center; gap: 0.7rem;
+  }
+  .section .s-num {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1rem; font-weight: 700; flex-shrink: 0;
+  }
+  .section .subtitle {
+    color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.8rem;
+  }
+
+  /* ── Content blocks ── */
+  h3 {
+    font-size: 1.2rem; margin: 1.8rem 0 0.7rem;
+    padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h4 { font-size: 1rem; margin: 1.4rem 0 0.5rem; color: var(--accent); }
+  p { margin-bottom: 0.8rem; color: var(--text-muted); }
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; color: var(--text-muted); }
+  li { margin-bottom: 0.25rem; }
+
+  /* ── Code ── */
+  pre {
+    background: var(--bg-code); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.2rem 1.4rem; margin: 1rem 0 1.5rem;
+    overflow-x: auto; font-size: 0.82rem; line-height: 1.55;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    position: relative;
+  }
+  pre code { color: #c9d1d9; }
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 0.85em; background: rgba(110,118,129,0.15); padding: 0.15em 0.4em;
+    border-radius: 4px;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  /* Syntax highlighting */
+  .kw { color: #ff7b72; }         /* keyword */
+  .str { color: #a5d6ff; }        /* string */
+  .cm { color: #8b949e; font-style: italic; } /* comment */
+  .fn { color: #d2a8ff; }         /* function */
+  .num { color: #79c0ff; }        /* number */
+  .op { color: #ff7b72; }         /* operator */
+  .tp { color: #7ee787; }         /* type/class */
+  .de { color: #d2a8ff; }         /* decorator */
+  .bu { color: #79c0ff; }         /* builtin */
+
+  /* ── Callouts ── */
+  .callout {
+    border-left: 3px solid var(--accent); background: rgba(88,166,255,0.06);
+    padding: 0.8rem 1.2rem; border-radius: 0 6px 6px 0; margin: 1.2rem 0;
+    font-size: 0.9rem;
+  }
+  .callout.warn { border-color: var(--orange); background: rgba(210,153,29,0.06); }
+  .callout.good { border-color: var(--green); background: rgba(63,185,80,0.06); }
+  .callout strong { color: var(--text); }
+
+  /* ── Tables ── */
+  table {
+    width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.88rem;
+  }
+  th, td {
+    text-align: left; padding: 0.6rem 0.9rem;
+    border-bottom: 1px solid var(--border);
+  }
+  th { color: var(--accent); font-weight: 600; white-space: nowrap; }
+  td { color: var(--text-muted); }
+
+  /* ── Protocol diagram ── */
+  .diagram {
+    background: var(--bg-code); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.2rem; margin: 1rem 0; font-family: monospace;
+    font-size: 0.82rem; white-space: pre; overflow-x: auto;
+    color: var(--text-muted); line-height: 1.5;
+  }
+
+  /* ── Connection arrows ── */
+  .conn-arrows {
+    font-family: monospace; font-size: 0.82rem; color: var(--text-muted);
+    background: var(--bg-code); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0;
+    overflow-x: auto; white-space: pre; line-height: 1.5;
+  }
+
+  /* ── Flow step ── */
+  .flow-steps {
+    display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0;
+  }
+  .flow-step {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.85rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .flow-step .arrow { color: var(--accent); }
+
+  /* ── Nav footer ── */
+  .nav-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border);
+  }
+  .nav-footer a {
+    color: var(--accent); text-decoration: none; font-size: 0.9rem;
+    padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 6px;
+    transition: all 0.15s;
+  }
+  .nav-footer a:hover { background: var(--bg-hover); border-color: var(--accent); }
+  .nav-footer .disabled { color: var(--text-muted); cursor: not-allowed; opacity: 0.5; }
+
+  /* ── Progress tracker ── */
+  .progress {
+    display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.2rem;
+    font-size: 0.85rem; color: var(--text-muted);
+  }
+  .progress-bar {
+    flex:1; height: 4px; background: var(--border); border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: var(--green); border-radius: 2px;
+    transition: width 0.3s;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 860px) {
+    .layout { flex-direction: column; }
+    .sidebar {
+      width: 100%; height: auto; position: static; border-right: none;
+      border-bottom: 1px solid var(--border); padding: 1.2rem;
+    }
+    .sidebar nav { flex-direction: row; flex-wrap: wrap; }
+    .main { padding: 1.5rem; }
+  }
+
+  @media print {
+    .sidebar { display: none; }
+    .main { max-width: 100%; }
+  }
+
+  /* ── Smooth scroll ── */
+  html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<aside class="sidebar">
+  <h3>AI Agent 后端学习</h3>
+  <div class="phase-title">阶段 1：后端基础 &amp; 网络协议</div>
+  <div class="progress">
+    <span>进度</span>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <span id="progress-text">0/5</span>
+  </div>
+  <nav>
+    <a href="#s1" data-section="s1">1. HTTP 协议深入 <span class="badge" id="badge-s1"></span></a>
+    <a href="#s2" data-section="s2">2. WebSocket 实时通信 <span class="badge" id="badge-s2"></span></a>
+    <a href="#s3" data-section="s3">3. SSE 服务端推送 <span class="badge" id="badge-s3"></span></a>
+    <a href="#s4" data-section="s4">4. 异步编程模型 <span class="badge" id="badge-s4"></span></a>
+    <a href="#s5" data-section="s5">5. 认证与安全基础 <span class="badge" id="badge-s5"></span></a>
+    <a href="#practice" data-section="practice" style="margin-top:0.8rem; color:var(--green);">🏗 综合实践项目</a>
+  </nav>
+</aside>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<main class="main">
+
+<!-- ── Header ── -->
+<div style="margin-bottom:3rem;">
+  <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:0.3rem;">← 回到 <a href="file:///D:/Hermes/workspace/agent-backend-roadmap.html" style="color:var(--cyan);">总路线图</a></p>
+  <h1 style="font-size:2rem; background:linear-gradient(90deg,var(--accent),var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">
+    阶段 1：后端基础 &amp; 网络协议
+  </h1>
+  <p style="color:var(--text-muted);">HTTP、WebSocket、SSE、异步编程、认证 —— Agent 通信的基石</p>
+  <p style="color:var(--text-muted); font-size:0.85rem;">⏱ 预计 2-3 周 | 📚 5 个核心主题 | 🎯 构建可运行的最小 Agent 后端</p>
+</div>
+
+<!-- ── 学习逻辑说明 ── -->
+<div class="callout">
+  <strong>学习路径逻辑：</strong>
+  这 5 个主题按照"从外到内、从协议到应用"的顺序排列 ——
+  <strong>HTTP(S)</strong> 是所有网络通信的基础，理解它才能看懂 <strong>WebSocket</strong> 的升级握手和 <strong>SSE</strong> 的流式响应；
+  有了协议基础后，用 <strong>异步编程</strong> 把它们的并发性能发挥到极致；
+  最后用 <strong>认证加密</strong> 把整个系统保护起来。
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 1: HTTP -->
+<!-- ═══════════════════════════════════════ -->
+<section class="section" id="s1">
+  <h2>
+    <span class="s-num" style="background:var(--accent); color:#fff;">1</span>
+    HTTP 协议深入
+  </h2>
+  <p class="subtitle">Agent 后端的一切通信都建立在 HTTP 之上。LLM API 调用、REST 接口、流式传输，底层全是 HTTP。理解它的每一个细节，才能在调试时游刃有余。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-s1" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-s1" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>1.1 什么是 HTTP？</h3>
+  <p>HTTP (HyperText Transfer Protocol) 是一个 <strong>应用层协议</strong>，基于 TCP，采用 <strong>请求-响应</strong> 模型。它是 Web 的基石，也是 LLM API（OpenAI、Anthropic 等）的通信基础。</p>
+  <p>Agent 后端为什么需要深入 HTTP？因为 LLM API 调用全是 HTTP POST → Chat Completions endpoint；流式输出依赖 HTTP 的 <code>Transfer-Encoding: chunked</code>；调试 Agent 行为第一步就是看 HTTP 请求/响应。</p>
+
+  <h3>1.2 HTTP 报文结构</h3>
+  <pre><code>┌──────────────────────────────────────┐
+│   <span class="kw">Start Line</span>         │  ← 请求: GET /api/chat HTTP/1.1
+│                      │    响应: HTTP/1.1 200 OK
+├──────────────────────────────────────┤
+│   <span class="tp">Headers</span>            │  ← Content-Type, Authorization, ...
+│   (key: value)       │
+├──────────────────────────────────────┤
+│   (空行 CRLF)        │  ← 分隔线：\r\n\r\n
+├──────────────────────────────────────┤
+│   <span class="str">Body</span> (可选)        │  ← JSON / form-data / binary
+└──────────────────────────────────────┘</code></pre>
+  <div class="callout">
+    <strong>关键点：</strong>Header 和 Body 之间必须有一个空行（<code>\r\n\r\n</code>），这是<strong>协议层面</strong>的分隔符。很多 HTTP 解析错误都是因为缺少这个空行。
+  </div>
+
+  <h3>1.3 HTTP 方法在 Agent 中的语义</h3>
+  <table>
+    <tr><th>方法</th><th>语义</th><th>Agent 场景</th></tr>
+    <tr><td><strong>GET</strong></td><td>读取资源</td><td>获取 agent 状态、历史消息、会话列表</td></tr>
+    <tr><td><strong>POST</strong></td><td>创建资源/提交数据</td><td>发送 prompt、调用 LLM、创建新会话</td></tr>
+    <tr><td><strong>PUT</strong></td><td>完整替换资源</td><td>更新 agent 全局配置</td></tr>
+    <tr><td><strong>PATCH</strong></td><td>部分更新</td><td>修改单条记忆、切换模型参数</td></tr>
+    <tr><td><strong>DELETE</strong></td><td>删除资源</td><td>清除会话、删除记忆</td></tr>
+    <tr><td><strong>OPTIONS</strong></td><td>预检请求</td><td>CORS preflight（浏览器客户端）</td></tr>
+  </table>
+
+  <h3>1.4 状态码 —— Agent 后端的必知必会</h3>
+  <table>
+    <tr><th>状态码</th><th>含义</th><th>Agent 场景</th></tr>
+    <tr><td>101</td><td>Switching Protocols</td><td>WebSocket 升级握手成功</td></tr>
+    <tr><td><strong>200</strong></td><td>OK</td><td>标准成功响应</td></tr>
+    <tr><td>201</td><td>Created</td><td>会话创建成功</td></tr>
+    <tr><td>204</td><td>No Content</td><td>删除操作成功（无返回体）</td></tr>
+    <tr><td>304</td><td>Not Modified</td><td>缓存命中，减少重复请求</td></tr>
+    <tr><td><strong>400</strong></td><td>Bad Request</td><td>JSON 格式错 / Schema 校验失败</td></tr>
+    <tr><td><strong>401</strong></td><td>Unauthorized</td><td>缺少或错误的 API Key</td></tr>
+    <tr><td><strong>403</strong></td><td>Forbidden</td><td>权限不足，非订阅用户</td></tr>
+    <tr><td>404</td><td>Not Found</td><td>模型名不存在 或 会话不存在</td></tr>
+    <tr><td><strong style="color:var(--orange);">429</strong></td><td>Too Many Requests</td><td>触发速率限制 ← Agent 最高频踩坑点</td></tr>
+    <tr><td><strong>500</strong></td><td>Internal Server Error</td><td>自己的 Agent 代码 bug</td></tr>
+    <tr><td><strong>502</strong></td><td>Bad Gateway</td><td>上游 LLM API (OpenAI) 挂了</td></tr>
+    <tr><td><strong>503</strong></td><td>Service Unavailable</td><td>LLM 服务过载/维护</td></tr>
+    <tr><td><strong style="color:var(--red);">504</strong></td><td>Gateway Timeout</td><td>LLM 推理超时 ← 长文本生成常见</td></tr>
+  </table>
+
+  <h3>1.5 关键请求/响应 Headers</h3>
+  <pre><code><span class="cm"># ===== 请求头 =====</span>
+<span class="kw">Authorization</span>: Bearer sk-xxxxxxxx          <span class="cm"># API Key 认证</span>
+<span class="kw">Content-Type</span>: application/json              <span class="cm"># 请求体格式</span>
+<span class="kw">Accept</span>: text/event-stream                   <span class="cm"># 接受 SSE 流式响应</span>
+<span class="kw">User-Agent</span>: MyAgent/1.0                     <span class="cm"># 标识自己（API 方可能拒绝无 UA 的请求）</span>
+
+<span class="cm"># ===== 响应头 =====</span>
+<span class="kw">Content-Type</span>: application/json
+<span class="kw">X-Request-ID</span>: req_abc123                     <span class="cm"># 请求追踪 ID（报 bug 时必须提供!）</span>
+<span class="kw">X-RateLimit-Remaining</span>: 499                  <span class="cm"># 剩余配额</span>
+<span class="kw">Retry-After</span>: 30                              <span class="cm"># 429 后的重试等待秒数</span></code></pre>
+
+  <h3>1.6 实践：用 Python aiohttp 调 OpenAI API</h3>
+  <pre><code><span class="kw">import</span> aiohttp
+<span class="kw">import</span> asyncio
+
+<span class="kw">async def</span> <span class="fn">call_llm</span>(prompt: <span class="tp">str</span>, api_key: <span class="tp">str</span>) -> <span class="tp">dict</span>:
+    <span class="str">"""完整的、带错误处理的 LLM 调用"""</span>
+    url = <span class="str">"https://api.openai.com/v1/chat/completions"</span>
+    headers = {
+        <span class="str">"Authorization"</span>: <span class="str">f"Bearer </span>{api_key}<span class="str">"</span>,
+        <span class="str">"Content-Type"</span>: <span class="str">"application/json"</span>,
+    }
+    payload = {
+        <span class="str">"model"</span>: <span class="str">"gpt-4o-mini"</span>,
+        <span class="str">"messages"</span>: [{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: prompt}],
+    }
+
+    <span class="kw">async with</span> aiohttp.ClientSession() <span class="kw">as</span> session:
+        <span class="kw">async with</span> session.post(url, headers=headers, json=payload,
+                                        timeout=<span class="num">30</span>) <span class="kw">as</span> resp:
+            <span class="cm"># 1. 先检查状态码</span>
+            <span class="kw">if</span> resp.status == <span class="num">429</span>:
+                retry = resp.headers.get(<span class="str">"Retry-After"</span>, <span class="str">"10"</span>)
+                <span class="kw">raise</span> <span class="tp">Exception</span>(<span class="str">f"Rate limited, retry after </span>{retry}<span class="str">s"</span>)
+
+            <span class="kw">if</span> resp.status != <span class="num">200</span>:
+                body = <span class="kw">await</span> resp.text()
+                <span class="kw">raise</span> <span class="tp">Exception</span>(<span class="str">f"HTTP </span>{resp.status}<span class="str">: </span>{body}<span class="str">"</span>)
+
+            <span class="cm"># 2. 再读 body</span>
+            <span class="kw">return await</span> resp.json()</code></pre>
+
+  <h3>1.7 实践：FastAPI 构建 REST API</h3>
+  <pre><code><span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI, HTTPException, Header
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+<span class="kw">from</span> typing <span class="kw">import</span> Optional
+
+app = FastAPI(title=<span class="str">"Agent Backend Demo"</span>)
+
+<span class="kw">class</span> <span class="tp">ChatRequest</span>(BaseModel):
+    message: <span class="tp">str</span>
+    session_id: Optional[<span class="tp">str</span>] = <span class="kw">None</span>
+
+<span class="kw">class</span> <span class="tp">ChatResponse</span>(BaseModel):
+    reply: <span class="tp">str</span>
+    session_id: <span class="tp">str</span>
+
+sessions = {}   <span class="cm"># 内存存储（生产环境用 Redis/DB）</span>
+
+<span class="de">@app.post</span>(<span class="str">"/chat"</span>, response_model=ChatResponse)
+<span class="kw">async def</span> <span class="fn">chat</span>(req: ChatRequest,
+                 authorization: <span class="tp">str</span> = Header(<span class="kw">None</span>)):
+    <span class="cm"># 认证检查</span>
+    <span class="kw">if not</span> authorization <span class="kw">or not</span> authorization.startswith(<span class="str">"Bearer "</span>):
+        <span class="kw">raise</span> HTTPException(status_code=<span class="num">401</span>, detail=<span class="str">"Missing API Key"</span>)
+
+    <span class="cm"># 会话管理</span>
+    sid = req.session_id <span class="kw">or</span> <span class="str">f"sess_</span>{<span class="bu">len</span>(sessions)+<span class="num">1</span>}<span class="str">"</span>
+    <span class="kw">if</span> sid <span class="kw">not in</span> sessions:
+        sessions[sid] = []
+
+    sessions[sid].append({<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: req.message})
+    <span class="kw">return</span> ChatResponse(reply=<span class="str">f"Echo: </span>{req.message}<span class="str">"</span>, session_id=sid)
+
+<span class="de">@app.delete</span>(<span class="str">"/sessions/</span>{session_id}<span class="str">"</span>, status_code=<span class="num">204</span>)
+<span class="kw">async def</span> <span class="fn">delete_session</span>(session_id: <span class="tp">str</span>):
+    sessions.pop(session_id, <span class="kw">None</span>)
+    <span class="kw">return</span>  <span class="cm"># 204 No Content = 不返回 body</span></code></pre>
+
+  <h3>1.8 HTTP 抓包调试</h3>
+  <div class="diagram"><span class="cm"># 用 curl -v 看完整请求和响应</span>
+$ curl -v https://api.openai.com/v1/chat/completions \
+  -H <span class="str">"Authorization: Bearer sk-xxx"</span> \
+  -H <span class="str">"Content-Type: application/json"</span> \
+  -d <span class="str">'{"model":"gpt-4o-mini","messages":[{"role":"user","content":"hi"}]}'</span>
+
+<span class="cm"># > POST /v1/chat/completions HTTP/1.1       ← 请求行</span>
+<span class="cm"># > Host: api.openai.com</span>
+<span class="cm"># > Authorization: Bearer sk-xxx</span>
+<span class="cm"># > Content-Type: application/json</span>
+<span class="cm"># >                                          ← 空行，Header 结束</span>
+<span class="cm"># < HTTP/1.1 200 OK                          ← 响应状态</span>
+<span class="cm"># < x-request-id: req_xxxx                   ← 用于报 bug 给 OpenAI</span></div>
+
+  <h3>1.9 Agent 实战技巧</h3>
+
+  <h4>API Key 轮换池</h4>
+  <pre><code><span class="kw">import</span> time, random
+
+<span class="kw">class</span> <span class="tp">APIKeyPool</span>:
+    <span class="str">"""多 Key 池，自动避开被 429 的 Key"""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, keys: <span class="tp">list</span>):
+        <span class="kw">self</span>.keys = keys
+        <span class="kw">self</span>.cooldown = {}  <span class="cm"># key → 解封时间戳</span>
+
+    <span class="kw">def</span> <span class="fn">get_key</span>(<span class="kw">self</span>) -> <span class="tp">str</span>:
+        now = time.time()
+        available = [k <span class="kw">for</span> k <span class="kw">in</span> <span class="kw">self</span>.keys
+                     <span class="kw">if</span> <span class="kw">self</span>.cooldown.get(k, <span class="num">0</span>) < now]
+        <span class="kw">if not</span> available:
+            <span class="kw">raise</span> <span class="tp">Exception</span>(<span class="str">"所有 Key 都被限流!"</span>)
+        <span class="kw">return</span> random.choice(available)
+
+    <span class="kw">def</span> <span class="fn">mark_rate_limited</span>(<span class="kw">self</span>, key: <span class="tp">str</span>, retry_after: <span class="tp">int</span>):
+        <span class="kw">self</span>.cooldown[key] = time.time() + retry_after</code></pre>
+
+  <h4>指数退避重试</h4>
+  <pre><code><span class="kw">async def</span> <span class="fn">call_with_retry</span>(fn, max_retries=<span class="num">3</span>):
+    <span class="str">"""遇到 429/5xx 自动重试，指数退避 + Jitter"""</span>
+    <span class="kw">for</span> attempt <span class="kw">in</span> <span class="bu">range</span>(max_retries + <span class="num">1</span>):
+        <span class="kw">try</span>:
+            <span class="kw">return await</span> fn()
+        <span class="kw">except</span> <span class="tp">Exception</span> <span class="kw">as</span> e:
+            <span class="kw">if</span> <span class="str">"429"</span> <span class="kw">in</span> <span class="bu">str</span>(e) <span class="kw">or</span> <span class="str">"5"</span> <span class="kw">in</span> <span class="bu">str</span>(getattr(e, <span class="str">'status'</span>, <span class="str">''</span>)):
+                <span class="kw">if</span> attempt == max_retries: <span class="kw">raise</span>
+                delay = <span class="num">1</span> * (<span class="num">2</span> ** attempt) + random.uniform(<span class="num">0</span>, <span class="num">1</span>)
+                <span class="kw">await</span> asyncio.sleep(delay)
+            <span class="kw">else</span>:
+                <span class="kw">raise</span></code></pre>
+
+  <div class="callout warn">
+    <strong>常见坑：</strong>
+    429 (限流) → 看 <code>Retry-After</code> 头，指数退避；401 → 检查 Key 是否过期；504 → 增大 timeout 或换更快模型；400 → 打印完整请求体，用 pydantic 校验 Schema。
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 2: WEBSOCKET -->
+<!-- ═══════════════════════════════════════ -->
+<section class="section" id="s2">
+  <h2>
+    <span class="s-num" style="background:var(--green); color:#fff;">2</span>
+    WebSocket 实时通信
+  </h2>
+  <p class="subtitle">Agent 需要实时推送中间状态（思考过程、工具调用进度）。HTTP 轮询太低效，WebSocket 是正确答案。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-s2" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-s2" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>2.1 WebSocket vs HTTP：本质区别</h3>
+  <div class="diagram"><span class="cm">HTTP:      每次请求-响应后断开</span>
+Client ──req──> Server ──res──> Client (结束，TCP 可复用但逻辑无状态)
+Client ──req──> Server ──res──> Client (又是一个新"回合")
+
+<span class="cm">WebSocket: 一次握手，双向长连接</span>
+Client ──Upgrade──> Server
+Client <══消息══> Server  ← 同一条 TCP 连接，双方随时发送
+Client <══消息══> Server    直到任一方主动关闭</div>
+
+  <h3>2.2 握手过程详解</h3>
+  <p>WebSocket 连接始于 HTTP 升级请求，成功后协议从 HTTP 切换到 WebSocket：</p>
+  <div class="diagram"><span class="cm">步骤 1: 客户端发起 HTTP 升级</span>
+GET /ws/chat HTTP/1.1
+Host: agent.example.com
+<span class="kw">Upgrade: websocket</span>
+<span class="kw">Connection: Upgrade</span>
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+
+<span class="cm">步骤 2: 服务端同意升级</span>
+HTTP/1.1 <span class="num">101</span> Switching Protocols
+<span class="kw">Upgrade: websocket</span>
+<span class="kw">Connection: Upgrade</span>
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+            ↑ SHA1(Key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")</div>
+
+  <h3>2.3 WebSocket 帧结构（简化）</h3>
+  <pre><code> 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-------+-+-------------+-------------------------------+
+|<span class="kw">FIN</span>|<span class="tp">RSV</span>|<span class="fn">opcode(4)</span>|<span class="kw">MASK</span>| Payload len  |                               |
++-+-+-+-+-------+-+-------------+-------------------------------+
+|              Masking-key (客户端→服务端 <span class="kw">必须</span> mask)            |
++---------------------------------------------------------------+
+|                         Payload Data                          |
++---------------------------------------------------------------+</code></pre>
+  <p>核心字段：<strong>Opcode</strong> — <code>0x1</code>=文本，<code>0x2</code>=二进制，<code>0x8</code>=关闭，<code>0x9</code>=Ping，<code>0xA</code>=Pong；<strong>MASK</strong> — 客户端→服务端必须 mask（防缓存投毒攻击），服务端→客户端不 mask。</p>
+
+  <h3>2.4 Ping/Pong 心跳机制</h3>
+  <div class="diagram">Client: Ping (opcode=0x9, 可选 payload) ──────>
+Server:                                       <────── Pong (opcode=0xA, 相同 payload)
+
+<span class="cm">作用：① 保持连接存活（穿越 NAT/代理超时）② 测量 RTT 延迟 ③ Pong 必须原样回传 Ping payload</span></div>
+
+  <h3>2.5 实践：FastAPI WebSocket 服务端</h3>
+  <pre><code><span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI, WebSocket, WebSocketDisconnect
+<span class="kw">import</span> json, asyncio
+
+app = FastAPI()
+
+<span class="de">@app.websocket</span>(<span class="str">"/ws/agent/</span>{session_id}<span class="str">"</span>)
+<span class="kw">async def</span> <span class="fn">agent_websocket</span>(websocket: WebSocket, session_id: <span class="tp">str</span>):
+    <span class="kw">await</span> websocket.accept()       <span class="cm"># ← 必须手动 accept</span>
+
+    <span class="kw">try</span>:
+        <span class="kw">while True</span>:
+            raw = <span class="kw">await</span> websocket.receive_text()
+            msg = json.loads(raw)
+
+            <span class="kw">if</span> msg.get(<span class="str">"action"</span>) == <span class="str">"run"</span>:
+                <span class="cm"># 模拟 Agent 多步执行，实时推送进度</span>
+                steps = [
+                    (<span class="str">"thinking"</span>, <span class="str">"正在分析任务..."</span>),
+                    (<span class="str">"tool_call"</span>, <span class="str">"调用 search(query='...')"</span>),
+                    (<span class="str">"tool_result"</span>, <span class="str">"找到 3 条相关文档"</span>),
+                    (<span class="str">"done"</span>, <span class="str">"最终回复：你好！"</span>),
+                ]
+                <span class="kw">for</span> step_type, content <span class="kw">in</span> steps:
+                    <span class="kw">await</span> websocket.send_json({
+                        <span class="str">"type"</span>: step_type, <span class="str">"content"</span>: content
+                    })
+                    <span class="kw">await</span> asyncio.sleep(<span class="num">0.5</span>)
+
+            <span class="kw">elif</span> msg.get(<span class="str">"action"</span>) == <span class="str">"stop"</span>:
+                <span class="kw">await</span> websocket.send_json({<span class="str">"type"</span>: <span class="str">"stopped"</span>})
+                <span class="kw">break</span>
+
+    <span class="kw">except</span> WebSocketDisconnect:
+        <span class="bu">print</span>(<span class="str">f"客户端断开: </span>{session_id}<span class="str">"</span>)</code></pre>
+
+  <h3>2.6 实践：Python WebSocket 客户端</h3>
+  <pre><code><span class="kw">import</span> asyncio, websockets, json
+
+<span class="kw">async def</span> <span class="fn">agent_client</span>():
+    uri = <span class="str">"ws://localhost:8000/ws/agent/my-session"</span>
+    <span class="kw">async with</span> websockets.connect(uri) <span class="kw">as</span> ws:
+        <span class="kw">await</span> ws.send(json.dumps({
+            <span class="str">"action"</span>: <span class="str">"run"</span>, <span class="str">"task"</span>: <span class="str">"帮我查天气"</span>
+        }))
+        <span class="kw">async for</span> raw <span class="kw">in</span> ws:
+            msg = json.loads(raw)
+            <span class="bu">print</span>(<span class="str">f"[</span>{msg[<span class="str">'type'</span>]}<span class="str">] </span>{msg[<span class="str">'content'</span>]}<span class="str">"</span>)
+            <span class="kw">if</span> msg[<span class="str">"type"</span>] == <span class="str">"done"</span>:
+                <span class="kw">await</span> ws.send(json.dumps({<span class="str">"action"</span>: <span class="str">"stop"</span>}))
+                <span class="kw">break</span>
+
+<span class="cm"># 输出:</span>
+<span class="cm"># [thinking] 正在分析任务...</span>
+<span class="cm"># [tool_call] 调用 search(query='...')</span>
+<span class="cm"># [tool_result] 找到 3 条相关文档</span>
+<span class="cm"># [done] 最终回复：你好！</span></code></pre>
+
+  <h3>2.7 Agent 场景：思考过程实时可视化</h3>
+  <p>WebSocket 天然适合推送 Agent 的 ReAct 循环中间状态。用户可以看到 Agent 正在「思考→调工具→拿结果→再思考」的全过程，而不是干等一个最终结果。</p>
+
+  <div class="conn-arrows">前端 UI                            Agent 后端
+  │                                    │
+  │  WS: {"action":"run","task":"查天气"}  │
+  │───────────────────────────────────>│
+  │                                    │ 第1步: LLM 分析 intent
+  │  WS: {"type":"thinking","content":"正在分析意图"}  │
+  │<───────────────────────────────────│
+  │                                    │ 第2步: 决定调用 search 工具
+  │  WS: {"type":"tool_call","tool":"search"}│
+  │<───────────────────────────────────│
+  │                                    │ 第3步: 工具返回结果
+  │  WS: {"type":"tool_result","result":"今天晴,22°C"}│
+  │<───────────────────────────────────│
+  │                                    │ 第4步: LLM 生成最终回复
+  │  WS: {"type":"done","content":"今天天气晴,22°C"}│
+  │<───────────────────────────────────│</div>
+
+  <h3>2.8 WebSocket vs SSE 选择指南</h3>
+  <table>
+    <tr><th>特性</th><th>WebSocket</th><th>SSE</th></tr>
+    <tr><td>通信方向</td><td><strong>双向</strong></td><td>单向（Server→Client）</td></tr>
+    <tr><td>协议层级</td><td>独立协议 ws://</td><td>基于 HTTP</td></tr>
+    <tr><td>自动重连</td><td>需手动实现</td><td>浏览器内置</td></tr>
+    <tr><td>二进制数据</td><td>支持</td><td>不支持（Base64 绕）</td></tr>
+    <tr><td>穿透代理</td><td>可能有问题（需 Upgrade）</td><td>与 HTTP 一致</td></tr>
+    <tr><td>Agent 场景</td><td>需客户端控制（中断/调参）</td><td>纯流式输出展示</td></tr>
+  </table>
+
+  <div class="callout warn">
+    <strong>常见坑：</strong>
+    1006 异常断连 → 实现 Ping/Pong 心跳 + 自动重连；
+    Nginx 反代 426 错误 → 配置 <code>proxy_set_header Upgrade $http_upgrade</code>；
+    内存泄漏 → 定期清理僵尸连接（心跳超时未响应即断开）。
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 3: SSE -->
+<!-- ═══════════════════════════════════════ -->
+<section class="section" id="s3">
+  <h2>
+    <span class="s-num" style="background:var(--orange); color:#fff;">3</span>
+    SSE (Server-Sent Events) 服务端推送
+  </h2>
+  <p class="subtitle">LLM 的流式输出是最典型的 SSE 场景（OpenAI stream=True 返回的就是 SSE 流）。理解它，才能正确处理 token-by-token 的输出。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-s3" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-s3" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>3.1 SSE 协议格式</h3>
+  <p>SSE 是一个<strong>基于 HTTP 的单向推送</strong>技术。它不像 WebSocket 需要协议升级，就是普通 HTTP 响应，只是 Content-Type 是 <code>text/event-stream</code>。</p>
+
+  <div class="diagram"><span class="cm">客户端请求:</span>
+GET /stream HTTP/1.1
+<span class="kw">Accept: text/event-stream</span>
+
+<span class="cm">服务端响应:</span>
+HTTP/1.1 200 OK
+<span class="kw">Content-Type: text/event-stream</span>
+Cache-Control: no-cache
+
+<span class="str">data: {"token": "你"}</span>
+                         ← 空行 = 一条消息结束
+<span class="str">data: {"token": "好"}</span>
+
+<span class="str">data: {"token": "！"}</span>
+
+<span class="str">data: [DONE]</span></div>
+
+  <h3>3.2 消息字段详解</h3>
+  <table>
+    <tr><th>字段</th><th>含义</th><th>示例</th></tr>
+    <tr><td><code>data:</code></td><td>消息数据（允许多行拼接）</td><td><code>data: {"chunk":1}\ndata: on next line\n\n</code></td></tr>
+    <tr><td><code>id:</code></td><td>消息 ID（断线重连用）</td><td><code>id: 42\n</code></td></tr>
+    <tr><td><code>event:</code></td><td>事件类型（默认 message）</td><td><code>event: tool_start\n</code></td></tr>
+    <tr><td><code>retry:</code></td><td>重连等待毫秒数</td><td><code>retry: 3000\n</code></td></tr>
+  </table>
+
+  <div class="callout good">
+    <strong>SSE 的杀手特性：自动重连</strong><br>
+    客户端断开后，浏览器内置的 EventSource 会自动等待 retry 毫秒，然后带上 <code>Last-Event-ID</code> 头重连，服务端可从该 ID 之后继续推送。WebSocket 需要手动实现这一切。
+  </div>
+
+  <h3>3.3 OpenAI SSE 格式 —— 注意陷阱！</h3>
+  <p>OpenAI Chat Completions API (<code>stream=True</code>) 返回的格式<strong>不是标准 SSE</strong>：</p>
+  <div class="diagram">data: {"id":"chatcmpl-xxx","choices":[{"delta":{"content":"你"},"index":0}]}
+
+data: {"id":"chatcmpl-xxx","choices":[{"delta":{"content":"好"},"index":0}]}
+
+data: {"id":"chatcmpl-xxx","choices":[{"delta":{},"finish_reason":"stop"}]}
+
+data: [DONE]          <span class="cm">← 这不是 JSON！是特殊标记字符串</span></div>
+
+  <p><strong>三个关键陷阱：</strong></p>
+  <ol>
+    <li><code>[DONE]</code> 不是合法 JSON → 必须显式判断 <code>if data_str == "[DONE]"</code></li>
+    <li><code>delta.content</code> 在 tool_calls 时可能为 <code>null</code> → 不能假设 content 总有值</li>
+    <li><code>delta.tool_calls[].function.arguments</code> 是<strong>增量片段</strong> → 必须按 index 累积拼接，不能直接 parse</li>
+  </ol>
+
+  <h3>3.4 实践：FastAPI SSE 服务端</h3>
+  <pre><code><span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI
+<span class="kw">from</span> fastapi.responses <span class="kw">import</span> StreamingResponse
+<span class="kw">import</span> asyncio, json
+
+app = FastAPI()
+
+<span class="kw">async def</span> <span class="fn">fake_llm_stream</span>(prompt: <span class="tp">str</span>):
+    <span class="str">"""模拟 LLM token-by-token 输出"""</span>
+    full = <span class="str">"好的，关于「</span>{prompt}<span class="str">」这里是一个详细回复..."</span>
+    <span class="kw">for</span> char <span class="kw">in</span> full:
+        chunk = {
+            <span class="str">"choices"</span>: [{<span class="str">"delta"</span>: {<span class="str">"content"</span>: char}}]
+        }
+        <span class="kw">yield</span> <span class="str">f"data: </span>{json.dumps(chunk, ensure_ascii=<span class="kw">False</span>)}<span class="str">\n\n"</span>
+        <span class="kw">await</span> asyncio.sleep(<span class="num">0.02</span>)
+    <span class="kw">yield</span> <span class="str">"data: [DONE]\n\n"</span>
+
+
+<span class="de">@app.get</span>(<span class="str">"/chat/stream"</span>)
+<span class="kw">async def</span> <span class="fn">chat_stream</span>(prompt: <span class="tp">str</span> = <span class="str">""</span>):
+    <span class="kw">return</span> StreamingResponse(
+        fake_llm_stream(prompt),
+        media_type=<span class="str">"text/event-stream"</span>,
+        headers={
+            <span class="str">"Cache-Control"</span>: <span class="str">"no-cache"</span>,
+            <span class="str">"X-Accel-Buffering"</span>: <span class="str">"no"</span>,  <span class="cm"># 禁用 Nginx 缓冲!</span>
+        }
+    )</code></pre>
+
+  <h3>3.5 实践：解析 OpenAI SSE 流</h3>
+  <pre><code><span class="kw">async def</span> <span class="fn">consume_openai_sse</span>(resp):
+    collected = []
+    tool_calls = {}  <span class="cm"># index → id, name, arguments 累积</span>
+
+    <span class="kw">async for</span> line <span class="kw">in</span> resp.content:
+        line = line.decode(<span class="str">"utf-8"</span>).strip()
+        <span class="kw">if not</span> line <span class="kw">or</span> line.startswith(<span class="str">":"</span>):
+            <span class="kw">continue</span>
+        <span class="kw">if not</span> line.startswith(<span class="str">"data: "</span>):
+            <span class="kw">continue</span>
+
+        data_str = line[<span class="num">6</span>:]  <span class="cm"># 去掉 "data: "</span>
+        <span class="kw">if</span> data_str == <span class="str">"[DONE]"</span>:
+            <span class="kw">break</span>
+
+        chunk = json.loads(data_str)
+        delta = chunk[<span class="str">"choices"</span>][<span class="num">0</span>][<span class="str">"delta"</span>]
+
+        <span class="kw">if</span> <span class="str">"content"</span> <span class="kw">in</span> delta <span class="kw">and</span> delta[<span class="str">"content"</span>]:
+            collected.append(delta[<span class="str">"content"</span>])
+
+        <span class="kw">if</span> <span class="str">"tool_calls"</span> <span class="kw">in</span> delta:
+            <span class="kw">for</span> tc <span class="kw">in</span> delta[<span class="str">"tool_calls"</span>]:
+                idx = tc[<span class="str">"index"</span>]
+                <span class="kw">if</span> idx <span class="kw">not in</span> tool_calls:
+                    tool_calls[idx] = {<span class="str">"id"</span>: <span class="str">""</span>, <span class="str">"function"</span>: {<span class="str">"name"</span>: <span class="str">""</span>, <span class="str">"arguments"</span>: <span class="str">""</span>}}
+                <span class="kw">if</span> <span class="str">"name"</span> <span class="kw">in</span> tc.get(<span class="str">"function"</span>, {}):
+                    tool_calls[idx][<span class="str">"function"</span>][<span class="str">"name"</span>] += tc[<span class="str">"function"</span>][<span class="str">"name"</span>]
+                <span class="kw">if</span> <span class="str">"arguments"</span> <span class="kw">in</span> tc.get(<span class="str">"function"</span>, {}):
+                    tool_calls[idx][<span class="str">"function"</span>][<span class="str">"arguments"</span>] += tc[<span class="str">"function"</span>][<span class="str">"arguments"</span>]</code></pre>
+
+  <h3>3.6 Agent 场景：多事件类型的 SSE 流</h3>
+  <div class="diagram">Client ──GET /agent/stream?session=abc──> Server
+       <── event: <span class="kw">token</span>      data: {"content":"你"}
+       <── event: <span class="kw">token</span>      data: {"content":"好"}
+       <── event: <span class="kw">tool_start</span> data: {"tool":"search","args":"..."}
+       <── event: <span class="kw">tool_end</span>   data: {"tool":"search","result":"..."}
+       <── event: <span class="kw">token</span>      data: {"content":"根据搜索结果"}
+       <── event: <span class="kw">done</span>       data: {"tokens":520,"cost":0.0012}
+
+前端:
+es.addEventListener(<span class="str">"tool_start"</span>, e => showToolSpinner(JSON.parse(e.data)))
+es.addEventListener(<span class="str">"tool_end"</span>,   e => hideToolSpinner(JSON.parse(e.data)))
+es.addEventListener(<span class="str">"token"</span>,      e => appendToken(JSON.parse(e.data).content))
+es.addEventListener(<span class="str">"done"</span>,       e => showStats(JSON.parse(e.data)))</div>
+
+  <h3>3.7 中断流式生成</h3>
+  <p>SSE 是单向的，要中断生成，客户端直接关闭连接即可。服务端通过检测连接是否还在来停止生成：</p>
+  <pre><code><span class="de">@app.get</span>(<span class="str">"/agent/stream"</span>)
+<span class="kw">async def</span> <span class="fn">agent_stream</span>(request: Request):
+    <span class="kw">async def</span> <span class="fn">generate</span><span class="op">():</span>
+        <span class="kw">async for</span> chunk <span class="kw">in</span> agent_loop():
+            <span class="kw">if await</span> request.is_disconnected():  <span class="cm"># ★ 关键检测</span>
+                <span class="kw">break</span>  <span class="cm"># 客户端断开 → 停止生成</span>
+            <span class="kw">yield</span> <span class="str">f"data: </span>{json.dumps(chunk)}<span class="str">\n\n"</span>
+    <span class="kw">return</span> StreamingResponse(generate(), media_type=<span class="str">"text/event-stream"</span>)</code></pre>
+
+  <div class="callout warn">
+    <strong>常见坑：</strong>
+    Nginx 缓冲导致前端收不到第一个事件 → <code>X-Accel-Buffering: no</code>；
+    CDN 缓存了 text/event-stream → 加 <code>Surrogate-Control: no-store</code>；
+    中文乱码 → Content-Type 带 <code>charset=utf-8</code>。
+  </div>
+
+  <!-- 承上启下 -->
+  <div class="callout">
+    <strong>HTTP → WebSocket → SSE 三者关系总结：</strong><br>
+    <strong>HTTP</strong> 是最基础的请求-响应；<strong>WebSocket</strong> 通过 HTTP 升级为全双工长连接，适合双向实时通信（客户端可中途发指令）；<strong>SSE</strong> 复用 HTTP 协议的单向流特性，实现更简单，适合 LLM 流式输出和进度推送。三者不是替代关系，而是<strong>按场景选择</strong> —— Agent 后端通常会同时用到它们。
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 4: 异步编程 -->
+<!-- ═══════════════════════════════════════ -->
+<section class="section" id="s4">
+  <h2>
+    <span class="s-num" style="background:var(--purple); color:#fff;">4</span>
+    异步编程模型
+  </h2>
+  <p class="subtitle">Agent 后端天然高并发——同时处理多个会话，每个会话调用多个 LLM API、执行多个工具。同步阻塞不可接受，异步是必修课。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-s4" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-s4" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>4.1 为什么 Agent 必须异步？</h3>
+  <div class="diagram"><span class="kw">同步</span>（一次处理一件事，等待 IO 时整个线程白白空等）：
+Req A: [=====等待 LLM (3s)=====][=====等待工具 (1s)=====]   总耗时 8s
+Req B:                                                [=====等待 (3s)=====]
+
+<span class="kw">异步</span>（等待 A 的 IO 时去处理 B，不用多开线程）：
+Req A: [=====等待 LLM (3s)=====][=====等待工具 (1s)=====]
+Req B:    [=====等待 LLM (3s)=====]                        总耗时 ~4s ← 节省一半</div>
+
+  <h3>4.2 Python asyncio 事件循环模型</h3>
+  <pre><code>┌──────────────────────────────────────────┐
+│              Event Loop (单线程)           │
+│                                           │
+│  ┌──────┐  ┌──────┐  ┌──────┐            │
+│  │Task A│  │Task B│  │Task C│  ...       │
+│  └──┬───┘  └──┬───┘  └──┬───┘            │
+│     │ await   │ await   │ await            │
+│     ▼         ▼         ▼                  │
+│  ┌─────────────────────────────────┐       │
+│  │    IO Waiting (epoll/kqueue)    │       │
+│  │    网络 / 文件 / 子进程          │       │
+│  └─────────────────────────────────┘       │
+└──────────────────────────────────────────┘</code></pre>
+  <p><strong>核心概念：</strong>事件循环是单线程的；<code>await</code> = "我先挂起，你去处理别人，我好了叫我"；IO 操作注册到 OS 的 epoll，由 OS 通知事件循环"数据到了"。</p>
+
+  <h3>4.3 协程 / Task / Future 的关系</h3>
+  <pre><code><span class="cm"># 协程函数 → 调用返回协程对象（还没跑）</span>
+<span class="kw">async def</span> <span class="fn">my_coro</span>():
+    <span class="kw">await</span> asyncio.sleep(<span class="num">1</span>)
+    <span class="kw">return</span> <span class="num">42</span>
+
+coro = my_coro()  <span class="cm"># 只是创建，未运行，返回 coroutine 对象</span>
+
+<span class="cm"># Task — 提交到事件循环去调度（立即开始跑）</span>
+task = asyncio.create_task(my_coro())
+result = <span class="kw">await</span> task  <span class="cm"># 等它完成 → 42</span>
+
+<span class="cm"># 串行 vs 并发 — 一个关键区别:</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="num">10</span>):
+    <span class="kw">await</span> call_llm(...)           <span class="cm"># ❌ 串行：10x 时间</span>
+
+tasks = [asyncio.create_task(call_llm(...)) <span class="kw">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="num">10</span>)]
+results = <span class="kw">await</span> asyncio.gather(*tasks)  <span class="cm"># ✅ 并发：~1x 时间</span></code></pre>
+
+  <h3>4.4 GIL 到底影不影响异步？</h3>
+  <table>
+    <tr><th>场景</th><th>受 GIL 影响？</th><th>方案</th></tr>
+    <tr><td>网络 IO（调 API、查数据库）</td><td>❌ 不影响</td><td>asyncio 完美</td></tr>
+    <tr><td>磁盘 IO（读文件、写日志）</td><td>❌ 基本不影响</td><td>aiofiles 或 run_in_executor</td></tr>
+    <tr><td>CPU 计算（数据处理、加密）</td><td>✅ 受 GIL 限制</td><td>multiprocessing 或 run_in_executor</td></tr>
+    <tr><td>子进程（运行外部命令）</td><td>❌ 不影响</td><td>asyncio.create_subprocess_exec</td></tr>
+  </table>
+  <p>Agent 后端 99% 是 IO 密集型 → asyncio 是最优解。只在 Embedding 批量计算等 CPU 密集场景才需要多进程。</p>
+
+  <h3>4.5 绝对不要在异步中调同步阻塞函数！</h3>
+  <pre><code><span class="kw">async def</span> <span class="fn">bad</span>():
+    time.sleep(<span class="num">5</span>)         <span class="cm"># ❌ 阻塞整个事件循环 5 秒！</span>
+    requests.get(url)     <span class="cm"># ❌ 同步 HTTP 库也阻塞</span>
+
+<span class="kw">async def</span> <span class="fn">good</span>():
+    <span class="kw">await</span> asyncio.sleep(<span class="num">5</span>)
+    <span class="kw">async with</span> aiohttp.ClientSession() <span class="kw">as</span> s:
+        <span class="kw">async with</span> s.get(url) <span class="kw">as</span> resp: ...
+
+<span class="kw">async def</span> <span class="fn">fallback</span>():  <span class="cm"># 万不得已（旧同步库）→ 丢线程池</span>
+    loop = asyncio.get_event_loop()
+    <span class="kw">return await</span> loop.run_in_executor(<span class="kw">None</span>, sync_blocking_fn)</code></pre>
+
+  <h3>4.6 实践：并发 LLM 调用 + 超时控制</h3>
+  <pre><code><span class="kw">import</span> asyncio, aiohttp
+
+<span class="kw">async def</span> <span class="fn">batch_llm</span>(prompts: <span class="tp">list</span>[<span class="tp">str</span>]) -> <span class="tp">list</span>[<span class="tp">str</span>]:
+    <span class="str">"""并发调用多个 LLM 请求，每个 30s 超时"""</span>
+    <span class="kw">async def</span> <span class="fn">call_one</span>(session, prompt):
+        <span class="kw">async with</span> asyncio.timeout(<span class="num">30</span>):  <span class="cm"># ← 超时控制</span>
+            <span class="kw">async with</span> session.post(URL, json={...}) <span class="kw">as</span> resp:
+                <span class="kw">return await</span> resp.json()
+
+    <span class="kw">async with</span> aiohttp.ClientSession() <span class="kw">as</span> session:
+        tasks = [call_one(session, p) <span class="kw">for</span> p <span class="kw">in</span> prompts]
+        <span class="kw">return await</span> asyncio.gather(*tasks, return_exceptions=<span class="kw">True</span>)</code></pre>
+
+  <h3>4.7 Agent 场景：会话并发控制器</h3>
+  <pre><code><span class="kw">class</span> <span class="tp">AgentSessionManager</span>:
+    <span class="str">"""每个会话内部串行，不同会话并发，全局限制数量"""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, max_concurrent=<span class="num">50</span>):
+        <span class="kw">self</span>.semaphore = asyncio.Semaphore(max_concurrent)
+        <span class="kw">self</span>.session_locks = {}
+
+    <span class="kw">async def</span> <span class="fn">process</span>(<span class="kw">self</span>, session_id: <span class="tp">str</span>, msg: <span class="tp">str</span>):
+        <span class="kw">if</span> session_id <span class="kw">not in</span> <span class="kw">self</span>.session_locks:
+            <span class="kw">self</span>.session_locks[session_id] = asyncio.Lock()
+
+        <span class="kw">async with</span> <span class="kw">self</span>.session_locks[session_id]:   <span class="cm"># 同会话串行</span>
+            <span class="kw">async with</span> <span class="kw">self</span>.semaphore:                   <span class="cm"># 全局并发限制</span>
+                <span class="kw">return await self</span>.agent_loop(session_id, msg)</code></pre>
+
+  <h3>4.8 Producer-Consumer 模式（Agent Pipeline）</h3>
+  <p>适用于：LLM 生成结果后需要 Embedding → 存向量库 → 更新缓存 等流水线处理。</p>
+  <pre><code><span class="kw">async def</span> <span class="fn">pipeline</span>(prompts):
+    queue = asyncio.Queue(maxsize=<span class="num">10</span>)  <span class="cm"># 背压控制</span>
+
+    <span class="kw">async def</span> <span class="fn">producer</span>():  <span class="cm"># 生产:调 LLM → 放入队列</span>
+        <span class="kw">async with</span> aiohttp.ClientSession() <span class="kw">as</span> s:
+            <span class="kw">for</span> p <span class="kw">in</span> prompts:
+                result = <span class="kw">await</span> call_llm(s, p)
+                <span class="kw">await</span> queue.put(result)
+        <span class="kw">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(NUM_CONSUMERS):
+            <span class="kw">await</span> queue.put(<span class="kw">None</span>)  <span class="cm"># 终止信号</span>
+
+    <span class="kw">async def</span> <span class="fn">consumer</span>(cid):  <span class="cm"># 消费:处理结果</span>
+        <span class="kw">while True</span>:
+            result = <span class="kw">await</span> queue.get()
+            <span class="kw">if</span> result <span class="kw">is None</span>: <span class="kw">break</span>
+            <span class="kw">await</span> process_result(result)
+
+    <span class="kw">await</span> asyncio.gather(producer(), *[consumer(i) <span class="kw">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="num">3</span>)])</code></pre>
+
+  <div class="callout warn">
+    <strong>常见坑：</strong>
+    <code>RuntimeWarning: coroutine was never awaited</code> → 创建了协程但没 await 或 create_task；
+    事件循环卡死 → 检查是否有 <code>time.sleep</code> 或 <code>requests.get</code> 在异步中；
+    并发数爆炸 → 用 <code>asyncio.Semaphore</code> 限流；
+    任务被取消 → 务必 <code>except asyncio.CancelledError</code> 后 <code>raise</code>（不要吞掉）。
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 5: 认证与安全 -->
+<!-- ═══════════════════════════════════════ -->
+<section class="section" id="s5">
+  <h2>
+    <span class="s-num" style="background:var(--pink); color:#fff;">5</span>
+    认证与安全基础
+  </h2>
+  <p class="subtitle">Agent 后端暴露在网络中需要认证。LLM API Key 的管理更是重中之重。安全不是可选项，是必须项。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-s5" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-s5" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>5.1 三层安全模型</h3>
+  <div class="diagram">                    ┌──────────────────┐
+ 用户 ──<span class="kw">JWT/Key</span>──> │   Agent Backend  │ ──<span class="kw">LLM Key</span>──> OpenAI/Anthropic
+                    │                  │
+ 攻击者 ──<span class="str">未授权</span>──>   │    (你的服务)     │ <──<span class="str">Key泄露</span>── 黑客
+                    └──────────────────┘
+
+❶ 用户认证: 谁在用你的 Agent？→ JWT / OAuth / API Key
+❷ LLM Key 管理: 上游 API Key 如何安全存储？→ 环境变量 / Vault
+❸ 传输加密: 中间人能不能窃听？→ HTTPS/TLS</div>
+
+  <h3>5.2 JWT 详解 —— 只签名不加密！</h3>
+  <pre><code>JWT 结构: header.payload.signature (三部分用 . 连接)
+
+<span class="cm">Header (算法声明):</span>  {<span class="str">"alg"</span>: <span class="str">"HS256"</span>, <span class="str">"typ"</span>: <span class="str">"JWT"</span>}
+<span class="cm">Payload (Claims):</span>   {<span class="str">"sub"</span>: <span class="str">"user_123"</span>, <span class="str">"exp"</span>: <span class="num">1717086400</span>, <span class="str">"role"</span>: <span class="str">"premium"</span>}
+<span class="cm">Signature:</span>          HMACSHA256(base64(header) + <span class="str">"."</span> + base64(payload), SECRET)
+
+<span class="kw">⚠️ JWT 只签名不加密!</span> Payload 任何人 Base64 解码就能看到。
+<span class="kw">不要在 Payload 里放敏感数据!</span> 需要加密用 JWE。</code></pre>
+
+  <h3>5.3 实践：FastAPI JWT 认证</h3>
+  <pre><code><span class="kw">import</span> jwt
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime, timedelta, timezone
+<span class="kw">from</span> fastapi <span class="kw">import</span> Depends, HTTPException
+<span class="kw">from</span> fastapi.security <span class="kw">import</span> HTTPBearer
+
+SECRET_KEY = os.getenv(<span class="str">"JWT_SECRET"</span>)      <span class="cm"># 从环境变量取!</span>
+security = HTTPBearer()
+
+<span class="kw">def</span> <span class="fn">create_token</span>(user_id: <span class="tp">str</span>) -> <span class="tp">str</span>:
+    payload = {
+        <span class="str">"sub"</span>: user_id,
+        <span class="str">"exp"</span>: datetime.now(timezone.utc) + timedelta(hours=<span class="num">1</span>),
+        <span class="str">"iat"</span>: datetime.now(timezone.utc),
+    }
+    <span class="kw">return</span> jwt.encode(payload, SECRET_KEY, algorithm=<span class="str">"HS256"</span>)
+
+<span class="kw">async def</span> <span class="fn">get_current_user</span>(
+    creds = Depends(security)
+) -> <span class="tp">dict</span>:
+    <span class="kw">try</span>:
+        <span class="kw">return</span> jwt.decode(creds.credentials, SECRET_KEY, algorithms=[<span class="str">"HS256"</span>])
+    <span class="kw">except</span> jwt.ExpiredSignatureError:
+        <span class="kw">raise</span> HTTPException(<span class="num">401</span>, <span class="str">"Token 过期"</span>)
+    <span class="kw">except</span> jwt.InvalidTokenError:
+        <span class="kw">raise</span> HTTPException(<span class="num">401</span>, <span class="str">"Token 无效"</span>)
+
+<span class="de">@app.get</span>(<span class="str">"/me"</span>)
+<span class="kw">async def</span> <span class="fn">me</span>(user = Depends(get_current_user)):
+    <span class="kw">return</span> {<span class="str">"user_id"</span>: user[<span class="str">"sub"</span>]}</code></pre>
+
+  <h3>5.4 OAuth 2.0 授权码流程</h3>
+  <p>Agent 后端最常见的 OAuth 场景：让用户的 Agent 访问用户的第三方账号（GitHub、Slack、Google）。</p>
+  <div class="conn-arrows">用户              Agent 后端               第三方 (GitHub)
+ │                   │                        │
+ │ 1. "连接GitHub"    │                        │
+ │──────────────────>│                        │
+ │                   │ 2. 重定向到授权页        │
+ │<──────────────────│ /authorize?client_id   │
+ │                   │ &redirect_uri=...      │
+ │ 3. 用户点击授权     │                        │
+ │───────────────────────────────────────────>│
+ │                   │                        │
+ │ 4. 回调 code      │                        │
+ │<──────────────────│ /callback?code=xxx     │
+ │                   │                        │
+ │                   │ 5. code 换 access_token│
+ │                   │───────────────────────>│
+ │                   │ 6. access_token        │
+ │                   │<───────────────────────│
+ │                   │ 7. 加密存储 token      │
+ │                   │    (存 refresh_token)  │
+ │ 8. "连接成功!"     │                        │
+ │<──────────────────│                        │</div>
+  <p><strong>关键概念：</strong></p>
+  <ul>
+    <li><strong>Authorization Code</strong> — 一次性，短期（~10分钟），只用于换 token</li>
+    <li><strong>Access Token</strong> — 实际调用 API 的凭证，通常 ~1 小时过期</li>
+    <li><strong>Refresh Token</strong> — 长期凭证，用于刷新 Access Token（适用 30天~永久）</li>
+    <li><strong>PKCE</strong> — 防止授权码拦截攻击（移动/SPA 应用必须）</li>
+  </ul>
+
+  <h3>5.5 API Key 管理最佳实践</h3>
+  <pre><code><span class="kw">class</span> <span class="tp">SecureKeyManager</span>:
+    <span class="str">"""生产级 API Key 管理"""</span>
+
+    <span class="kw">def</span> <span class="fn">load_provider_keys</span>(<span class="kw">self</span>) -> <span class="tp">dict</span>:
+        <span class="str">"""从环境变量加载 LLM Provider Key（绝不硬编码!）"""</span>
+        keys = {}
+        <span class="kw">for</span> provider <span class="kw">in</span> [<span class="str">"openai"</span>, <span class="str">"anthropic"</span>, <span class="str">"deepseek"</span>]:
+            key = os.getenv(<span class="str">f"</span>{provider.upper()}<span class="str">_API_KEY"</span>)
+            <span class="kw">if</span> key: keys[provider] = key
+        <span class="kw">return</span> keys
+
+    <span class="de">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">generate_user_key</span>(prefix=<span class="str">"agent"</span>) -> <span class="tp">tuple</span>[<span class="tp">str</span>, <span class="tp">str</span>]:
+        <span class="str">"""生成用户 API Key，只存哈希不存明文"""</span>
+        raw = <span class="str">f"</span>{prefix}<span class="str">_</span>{secrets.token_hex(<span class="num">16</span>)}<span class="str">"</span>
+        hashed = hashlib.sha256(raw.encode()).hexdigest()
+        <span class="kw">return</span> raw, hashed  <span class="cm"># raw 给用户看一次，hashed 存 DB</span>
+
+    <span class="de">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">mask_key</span>(key: <span class="tp">str</span>) -> <span class="tp">str</span>:
+        <span class="str">"""日志脱敏: sk-a1b2...z9 → sk-a1b2***z9"""</span>
+        <span class="kw">return</span> key[:<span class="num">6</span>] + <span class="str">"***"</span> + key[-<span class="num">4</span>:] <span class="kw">if</span> <span class="bu">len</span>(key)><span class="num">12</span> <span class="kw">else</span> <span class="str">"***"</span></code></pre>
+
+  <h3>5.6 多租户 + Rate Limiting 完整示例</h3>
+  <pre><code><span class="kw">class</span> <span class="tp">TenantRateLimiter</span>:
+    <span class="str">"""每个用户独立的 LLM Key + 请求限制"""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, rpm=<span class="num">50</span>):
+        <span class="kw">self</span>.rpm = rpm                    <span class="cm"># requests per minute</span>
+        <span class="kw">self</span>.tenants: <span class="tp">dict</span> = {}          <span class="cm"># tenant_id → {keys, timestamps}</span>
+
+    <span class="kw">def</span> <span class="fn">register</span>(<span class="kw">self</span>, tid: <span class="tp">str</span>, provider_keys: <span class="tp">dict</span>):
+        <span class="kw">self</span>.tenants[tid] = {
+            <span class="str">"keys"</span>: {k: encrypt(v) <span class="kw">for</span> k, v <span class="kw">in</span> provider_keys.items()},
+            <span class="str">"timestamps"</span>: []
+        }
+
+    <span class="kw">def</span> <span class="fn">check_rate</span>(<span class="kw">self</span>, tid: <span class="tp">str</span>) -> <span class="tp">bool</span>:
+        now = time.time()
+        t = <span class="kw">self</span>.tenants[tid]
+        t[<span class="str">"timestamps"</span>] = [ts <span class="kw">for</span> ts <span class="kw">in</span> t[<span class="str">"timestamps"</span>] <span class="kw">if</span> ts > now - <span class="num">60</span>]
+        <span class="kw">if</span> <span class="bu">len</span>(t[<span class="str">"timestamps"</span>]) >= <span class="kw">self</span>.rpm:
+            <span class="kw">return False</span>  <span class="cm"># 限流!</span>
+        t[<span class="str">"timestamps"</span>].append(now)
+        <span class="kw">return True</span></code></pre>
+
+  <div class="callout warn">
+    <strong>安全红线：</strong><br>
+    ❶ 绝不在代码/日志/报错信息中打印完整 API Key<br>
+    ❷ JWT 不在 payload 放密码等敏感数据（只签名不加密！）<br>
+    ❸ <code>.env</code> 文件必须进 <code>.gitignore</code><br>
+    ❹ 生产环境用 Vault / AWS Secrets Manager，不用 .env<br>
+    ❺ 用户 Key 只存哈希（SHA256），不存明文<br>
+    ❻ HTTPS 是底线，没有例外
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- 综合实践项目 -->
+<!-- ═══════════════════════════════════════ -->
+<section class="section" id="practice" style="border-bottom: none;">
+  <h2>
+    <span class="s-num" style="background:var(--green); color:#fff;">🏗</span>
+    综合实践：最小 Agent 后端
+  </h2>
+  <p class="subtitle">整合本阶段全部知识，构建一个可运行的最小 Agent 后端 —— 有认证、有流式、有 WebSocket、有并发。</p>
+
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+    <input type="checkbox" id="check-practice" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;">
+    <label for="check-practice" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label>
+  </div>
+
+  <h3>项目结构</h3>
+  <pre><code>mini-agent/
+├── main.py            <span class="cm"># FastAPI 入口：路由 + 中间件</span>
+├── auth.py            <span class="cm"># JWT 认证：create_token / get_current_user</span>
+├── llm_client.py      <span class="cm"># aiohttp 异步调用 OpenAI（非流式+流式）</span>
+├── ws_handler.py      <span class="cm"># WebSocket Agent 实时交互</span>
+├── sse_handler.py     <span class="cm"># SSE 流式输出</span>
+├── middleware.py       <span class="cm"># Rate Limiting + Key 脱敏日志</span>
+├── config.py          <span class="cm"># 环境变量加载（pydantic-settings）</span>
+├── .env.example       <span class="cm"># 配置模板（不包含真实 Key）</span>
+└── requirements.txt</code></pre>
+
+  <h3>路由设计（API 契约）</h3>
+  <table>
+    <tr><th>方法</th><th>路径</th><th>协议</th><th>说明</th></tr>
+    <tr><td>POST</td><td>/auth/login</td><td>HTTP</td><td>登录 → 返回 JWT</td></tr>
+    <tr><td>POST</td><td>/chat</td><td>HTTP</td><td>非流式聊天（需 Bearer Token）</td></tr>
+    <tr><td>GET</td><td>/chat/stream</td><td>SSE</td><td>流式输出（token-by-token）</td></tr>
+    <tr><td>WS</td><td>/ws/agent/{id}</td><td>WebSocket</td><td>双向实时 Agent 交互</td></tr>
+    <tr><td>GET</td><td>/sessions/{id}</td><td>HTTP</td><td>获取会话历史</td></tr>
+    <tr><td>DELETE</td><td>/sessions/{id}</td><td>HTTP</td><td>删除会话（204）</td></tr>
+  </table>
+
+  <h3>main.py 整合示例</h3>
+  <pre><code><span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI, Depends
+<span class="kw">from</span> fastapi.responses <span class="kw">import</span> StreamingResponse
+<span class="kw">from</span> auth <span class="kw">import</span> get_current_user, create_token
+<span class="kw">from</span> llm_client <span class="kw">import</span> call_llm, call_llm_stream
+<span class="kw">from</span> ws_handler <span class="kw">import</span> agent_websocket
+<span class="kw">from</span> middleware <span class="kw">import</span> RateLimitMiddleware
+
+app = FastAPI(title=<span class="str">"Mini Agent"</span>)
+
+<span class="cm"># 全局速率限制中间件</span>
+app.add_middleware(RateLimitMiddleware, max_rpm=<span class="num">60</span>)
+
+<span class="de">@app.post</span>(<span class="str">"/auth/login"</span>)
+<span class="kw">async def</span> <span class="fn">login</span>(username: <span class="tp">str</span>, password: <span class="tp">str</span>):
+    <span class="cm"># 实际应验证凭据...</span>
+    token = create_token(user_id=username)
+    <span class="kw">return</span> {<span class="str">"access_token"</span>: token, <span class="str">"token_type"</span>: <span class="str">"bearer"</span>}
+
+<span class="de">@app.post</span>(<span class="str">"/chat"</span>)
+<span class="kw">async def</span> <span class="fn">chat</span>(req: ChatRequest, user = Depends(get_current_user)):
+    reply = <span class="kw">await</span> call_llm(req.message, user[<span class="str">"sub"</span>])
+    <span class="kw">return</span> {<span class="str">"reply"</span>: reply}
+
+<span class="de">@app.get</span>(<span class="str">"/chat/stream"</span>)
+<span class="kw">async def</span> <span class="fn">chat_stream</span>(prompt: <span class="tp">str</span>, user = Depends(get_current_user)):
+    <span class="kw">return</span> StreamingResponse(
+        call_llm_stream(prompt, user[<span class="str">"sub"</span>]),
+        media_type=<span class="str">"text/event-stream"</span>,
+        headers={<span class="str">"X-Accel-Buffering"</span>: <span class="str">"no"</span>}
+    )
+
+<span class="de">@app.websocket</span>(<span class="str">"/ws/agent/</span>{session_id}<span class="str">"</span>)
+<span class="kw">async def</span> <span class="fn">ws_route</span>(websocket, session_id: <span class="tp">str</span>):
+    <span class="kw">await</span> agent_websocket(websocket, session_id)</code></pre>
+
+  <div class="callout good">
+    <strong>阶段1毕业标准：</strong>
+    完成以上项目后，你应该能够 ——<br>
+    ① 独立构建带认证的异步 Web 服务<br>
+    ② 正确实现 SSE 流式输出和 WebSocket 双向通信<br>
+    ③ 处理 LLM API 的各种 HTTP 错误状态<br>
+    ④ 理解并应用 JWT、OAuth、API Key 管理最佳实践<br>
+    ⑤ 为下一步的"LLM API 集成"和"Agent 核心架构"打好坚实底座
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- NAV FOOTER -->
+<!-- ═══════════════════════════════════════ -->
+<div class="nav-footer">
+  <span class="disabled">← 阶段 0（无）</span>
+  <a href="file:///D:/Hermes/workspace/agent-backend-learning/02-llm-api-integration/phase2.html" style="color:var(--accent);">
+    阶段 2：LLM 基础 & API 集成 →
+  </a>
+</div>
+
+</main>
+</div><!-- /layout -->
+
+<script>
+// ── Progress tracking ──
+const SECTION_IDS = ['s1','s2','s3','s4','s5','practice'];
+const TOTAL = SECTION_IDS.length;
+
+function updateProgress() {
+  let done = 0;
+  SECTION_IDS.forEach(id => {
+    const cb = document.getElementById('check-' + id);
+    const badge = document.getElementById('badge-' + id);
+    if (cb && cb.checked) {
+      done++;
+      if (badge) { badge.textContent = '✓'; badge.className = 'badge done'; }
+    } else {
+      if (badge) { badge.textContent = ''; badge.className = 'badge'; }
+    }
+  });
+
+  const pct = (done / TOTAL * 100).toFixed(0) + '%';
+  document.getElementById('progress-fill').style.width = pct;
+  document.getElementById('progress-text').textContent = done + '/' + TOTAL;
+
+  // Persist
+  const state = {};
+  SECTION_IDS.forEach(id => {
+    const cb = document.getElementById('check-' + id);
+    if (cb) state[id] = cb.checked;
+  });
+  localStorage.setItem('agent-phase1-progress', JSON.stringify(state));
+}
+
+function loadProgress() {
+  const saved = localStorage.getItem('agent-phase1-progress');
+  if (!saved) return;
+  const state = JSON.parse(saved);
+  SECTION_IDS.forEach(id => {
+    if (state[id] !== undefined) {
+      const cb = document.getElementById('check-' + id);
+      if (cb) cb.checked = state[id];
+    }
+  });
+  updateProgress();
+}
+
+// ── Active nav highlight ──
+function updateActiveNav() {
+  const sections = SECTION_IDS.map(id => document.getElementById(id));
+  let current = SECTION_IDS[0];
+
+  sections.forEach((sec, i) => {
+    if (!sec) return;
+    const rect = sec.getBoundingClientRect();
+    if (rect.top <= 150) current = SECTION_IDS[i];
+  });
+
+  document.querySelectorAll('.sidebar nav a').forEach(a => {
+    a.classList.remove('active');
+    if (a.getAttribute('data-section') === current) {
+      a.classList.add('active');
+    }
+  });
+}
+
+window.addEventListener('scroll', updateActiveNav);
+window.addEventListener('load', () => {
+  loadProgress();
+  updateActiveNav();
+});
+</script>
+
+</body>
+</html>

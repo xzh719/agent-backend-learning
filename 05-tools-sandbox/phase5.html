@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段5：工具生态 & 安全沙箱 —— AI Agent 后端学习</title>
+<style>
+  :root { --bg:#0d1117; --bg-card:#161b22; --bg-hover:#1c2129; --bg-code:#0d1117; --border:#30363d; --text:#c9d1d9; --text-muted:#8b949e; --accent:#58a6ff; --green:#3fb950; --orange:#d2991d; --purple:#a371f7; --red:#f85149; --cyan:#39d2c0; --pink:#db61a2; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+  .layout { display:flex; min-height:100vh; }
+  .sidebar { width: 280px; flex-shrink:0; background: var(--bg-card); border-right: 1px solid var(--border); padding: 2rem 1.5rem; position: sticky; top:0; height:100vh; overflow-y:auto; }
+  .sidebar h3 { font-size: 0.85rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.8rem; }
+  .sidebar .phase-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem; }
+  .sidebar nav { display:flex; flex-direction:column; gap: 0.3rem; }
+  .sidebar nav a { color: var(--text-muted); text-decoration: none; font-size: 0.88rem; padding: 0.45rem 0.7rem; border-radius: 6px; transition: all 0.15s; border-left: 2px solid transparent; }
+  .sidebar nav a:hover { color: var(--text); background: var(--bg-hover); } .sidebar nav a.active { color: var(--accent); background: rgba(88,166,255,0.08); border-left-color: var(--accent); }
+  .sidebar .badge { display: inline-block; font-size: 0.7rem; padding: 0.12rem 0.4rem; border-radius: 4px; margin-left: 0.3rem; background: var(--border); color: var(--text-muted); } .sidebar .badge.done { background: rgba(63,185,80,0.15); color: var(--green); }
+  .main { flex:1; padding: 2.5rem 3rem; max-width: 960px; }
+  .section { margin-bottom: 4rem; padding-bottom: 3rem; border-bottom: 1px solid var(--border); } .section:last-child { border-bottom: none; }
+  .section h2 { font-size: 1.65rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.7rem; }
+  .section .s-num { width: 36px; height: 36px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; flex-shrink: 0; }
+  .section .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.8rem; }
+  h3 { font-size: 1.2rem; margin: 1.8rem 0 0.7rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); } h4 { font-size: 1rem; margin: 1.4rem 0 0.5rem; color: var(--accent); }
+  p { margin-bottom: 0.8rem; color: var(--text-muted); } ul, ol { margin: 0.5rem 0 1rem 1.5rem; color: var(--text-muted); } li { margin-bottom: 0.25rem; }
+  pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 1.2rem 1.4rem; margin: 1rem 0 1.5rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; font-family: 'JetBrains Mono','Fira Code','Cascadia Code','Consolas',monospace; } pre code { color: #c9d1d9; }
+  code { font-family: 'JetBrains Mono','Fira Code','Cascadia Code','Consolas',monospace; font-size: 0.85em; background: rgba(110,118,129,0.15); padding: 0.15em 0.4em; border-radius: 4px; } pre code { background: none; padding: 0; font-size: inherit; }
+  .kw { color:#ff7b72; } .str { color:#a5d6ff; } .cm { color:#8b949e; font-style:italic; } .fn { color:#d2a8ff; } .num { color:#79c0ff; } .tp { color:#7ee787; } .de { color:#d2a8ff; } .bu { color:#79c0ff; }
+  .callout { border-left: 3px solid var(--accent); background: rgba(88,166,255,0.06); padding: 0.8rem 1.2rem; border-radius: 0 6px 6px 0; margin: 1.2rem 0; font-size: 0.9rem; } .callout.warn { border-color: var(--orange); background: rgba(210,153,29,0.06); } .callout.good { border-color: var(--green); background: rgba(63,185,80,0.06); } .callout strong { color: var(--text); }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.88rem; } th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); } th { color: var(--accent); font-weight: 600; } td { color: var(--text-muted); }
+  .diagram { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 1.2rem; margin: 1rem 0; font-family: monospace; font-size: 0.82rem; white-space: pre; overflow-x: auto; color: var(--text-muted); line-height: 1.5; }
+  .nav-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); } .nav-footer a { color: var(--accent); text-decoration: none; font-size: 0.9rem; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 6px; transition: all 0.15s; } .nav-footer a:hover { background: var(--bg-hover); border-color: var(--accent); }
+  .progress { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.2rem; font-size: 0.85rem; color: var(--text-muted); } .progress-bar { flex:1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; } .progress-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.3s; }
+  @media (max-width:860px) { .layout { flex-direction: column; } .sidebar { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--border); padding: 1.2rem; } .sidebar nav { flex-direction: row; flex-wrap: wrap; } .main { padding: 1.5rem; } }
+  html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <h3>AI Agent 后端学习</h3>
+  <div class="phase-title">阶段 5：工具生态 &amp; 安全沙箱</div>
+  <div class="progress"><span>进度</span><div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div><span id="progress-text">0/5</span></div>
+  <nav>
+    <a href="#s1" data-section="s1">1. 工具注册与发现 <span class="badge" id="badge-s1"></span></a>
+    <a href="#s2" data-section="s2">2. Docker 沙箱执行 <span class="badge" id="badge-s2"></span></a>
+    <a href="#s3" data-section="s3">3. 权限与安全模型 <span class="badge" id="badge-s3"></span></a>
+    <a href="#s4" data-section="s4">4. 外部 API 集成 <span class="badge" id="badge-s4"></span></a>
+    <a href="#s5" data-section="s5">5. 插件系统设计 <span class="badge" id="badge-s5"></span></a>
+    <a href="#practice" data-section="practice" style="margin-top:0.8rem; color:var(--green);">🏗 综合实践</a>
+  </nav>
+</aside>
+<main class="main">
+<div style="margin-bottom:3rem;">
+  <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:0.3rem;">← <a href="file:///D:/Hermes/workspace/agent-backend-roadmap.html" style="color:var(--cyan);">总路线图</a> | <a href="file:///D:/Hermes/workspace/agent-backend-learning/04-memory-rag/phase4.html" style="color:var(--cyan);">← 阶段4</a></p>
+  <h1 style="font-size:2rem; background:linear-gradient(90deg,var(--orange),var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">阶段 5：工具生态 &amp; 安全沙箱</h1>
+  <p style="color:var(--text-muted);">工具注册发现、Docker 沙箱执行、权限模型、外部 API 集成 —— 让 Agent 安全地操作真实世界</p>
+  <p style="color:var(--text-muted); font-size:0.85rem;">⏱ 预计 2 周 | 📚 5 个核心主题</p>
+</div>
+
+<div class="callout"><strong>学习路径逻辑：</strong>阶段 3 实现了 Tool Calling 的基本机制，本阶段要解决「工具从哪里来、如何安全执行、如何管理权限、如何扩展」。先做 <strong>工具注册发现</strong> → <strong>Docker 沙箱</strong>（执行代码/命令）→ <strong>权限模型</strong> → <strong>外部 API 集成</strong>（Slack/GitHub等）→ <strong>插件系统</strong>（让第三方贡献工具）。</div>
+
+<!-- S1 -->
+<section class="section" id="s1">
+  <h2><span class="s-num" style="background:var(--accent); color:#fff;">1</span>工具注册与发现</h2>
+  <p class="subtitle">Agent 的工具不是写死的字符串数组。一个成熟的系统需要动态注册、发现、管理工具。</p>
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;"><input type="checkbox" id="check-s1" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;"><label for="check-s1" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label></div>
+  <h3>Tool Registry</h3>
+  <pre><code><span class="kw">from</span> typing <span class="kw">import</span> Callable, Optional
+<span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
+
+<span class="de">@dataclass</span>
+<span class="kw">class</span> <span class="tp">ToolDef</span>:
+    name: <span class="tp">str</span>
+    description: <span class="tp">str</span>
+    parameters: <span class="tp">dict</span>
+    handler: Callable
+    category: <span class="tp">str</span> = <span class="str">"general"</span>
+    require_auth: <span class="tp">bool</span> = <span class="kw">False</span>
+    require_sandbox: <span class="tp">bool</span> = <span class="kw">False</span>
+
+<span class="kw">class</span> <span class="tp">ToolRegistry</span>:
+    <span class="str">"""全局工具注册表 —— 单一数据源"""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>):
+        <span class="kw">self</span>._tools: <span class="tp">dict</span>[<span class="tp">str</span>, ToolDef] = {}
+
+    <span class="kw">def</span> <span class="fn">register</span>(<span class="kw">self</span>, tool: ToolDef):
+        <span class="kw">self</span>._tools[tool.name] = tool
+
+    <span class="kw">def</span> <span class="fn">get_openai_format</span>(<span class="kw">self</span>, category=<span class="kw">None</span>) -> <span class="tp">list</span>[<span class="tp">dict</span>]:
+        tools = <span class="kw">self</span>._tools.values()
+        <span class="kw">if</span> category:
+            tools = [t <span class="kw">for</span> t <span class="kw">in</span> tools <span class="kw">if</span> t.category == category]
+        <span class="kw">return</span> [{<span class="str">"type"</span>:<span class="str">"function"</span>, <span class="str">"function"</span>:{<span class="str">"name"</span>:t.name, <span class="str">"description"</span>:t.description, <span class="str">"parameters"</span>:t.parameters}} <span class="kw">for</span> t <span class="kw">in</span> tools]
+
+    <span class="kw">async def</span> <span class="fn">execute</span>(<span class="kw">self</span>, name, args):
+        tool = <span class="kw">self</span>._tools[name]
+        <span class="kw">if</span> tool.require_sandbox:
+            <span class="kw">return await</span> sandbox.run(tool.handler, args)
+        <span class="kw">return await</span> tool.handler(**args)</code></pre>
+</section>
+
+<!-- S2 -->
+<section class="section" id="s2">
+  <h2><span class="s-num" style="background:var(--green); color:#fff;">2</span>Docker 沙箱执行</h2>
+  <p class="subtitle">让 LLM 直接在你服务器上执行代码 = 自爆。Docker 沙箱是 Agent 代码执行的安全底线。</p>
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;"><input type="checkbox" id="check-s2" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;"><label for="check-s2" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label></div>
+  <h3>沙箱设计原则</h3>
+  <div class="diagram">┌──────────────────────────────────┐
+│   Host (你的 Agent 服务器)        │
+│                                    │
+│  ┌──────────────────────────────┐ │
+│  │  Docker Container (沙箱)      │ │
+│  │  - 网络: 无/仅内网            │ │
+│  │  - 文件: tmpfs (内存,退出即删) │ │
+│  │  - CPU: 限制 1 核             │ │
+│  │  - 内存: 限制 256MB           │ │
+│  │  - 超时: 30s                  │ │
+│  │  - 权限: no-new-privileges    │ │
+│  │  - 只读 rootfs                │ │
+│  └──────────────────────────────┘ │
+└──────────────────────────────────┘</div>
+  <h3>Python Docker SDK 沙箱</h3>
+  <pre><code><span class="kw">import</span> docker
+
+client = docker.from_env()
+
+SANDBOX_IMAGE = <span class="str">"python:3.11-slim"</span>
+SECURITY_OPTS = [
+    <span class="str">"no-new-privileges"</span>,
+    <span class="str">"seccomp=unconfined"</span>,
+]
+
+<span class="kw">async def</span> <span class="fn">execute_in_sandbox</span>(code: <span class="tp">str</span>, timeout=<span class="num">30</span>) -> <span class="tp">str</span>:
+    container = client.containers.run(
+        image=SANDBOX_IMAGE,
+        command=[<span class="str">"python"</span>, <span class="str">"-c"</span>, code],
+        detach=<span class="kw">True</span>,
+        network_disabled=<span class="kw">True</span>,      <span class="cm"># 断网</span>
+        mem_limit=<span class="str">"256m"</span>,              <span class="cm"># 内存限制</span>
+        nano_cpus=<span class="num">1_000_000_000</span>,      <span class="cm"># 1 CPU 核</span>
+        read_only=<span class="kw">True</span>,              <span class="cm"># 只读文件系统</span>
+        tmpfs={<span class="str">"/tmp"</span>: <span class="str">"size=64M"</span>}, <span class="cm"># 临时可写区</span>
+        security_opt=SECURITY_OPTS,
+        remove=<span class="kw">True</span>,                  <span class="cm"># 跑完自动删除</span>
+    )
+    <span class="kw">try</span>:
+        result = container.wait(timeout=timeout)
+        logs = container.logs().decode()
+        <span class="kw">return</span> logs
+    <span class="kw">except</span> docker.errors.APIError:
+        container.kill()
+        <span class="kw">raise</span>
+    <span class="kw">finally</span>:
+        container.remove(force=<span class="kw">True</span>)</code></pre>
+  <div class="callout warn"><strong>绝对不要在宿主机上执行 LLM 生成的代码。</strong>即使用了 Docker 沙箱，也要限制网络、CPU、内存、超时，并设只读文件系统。</div>
+</section>
+
+<!-- S3 -->
+<section class="section" id="s3">
+  <h2><span class="s-num" style="background:var(--orange); color:#fff;">3</span>权限与安全模型</h2>
+  <p class="subtitle">Agent 能做的事情越来越多，必须有精细的权限控制——谁能用什么工具、读什么文件、调什么 API。</p>
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;"><input type="checkbox" id="check-s3" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;"><label for="check-s3" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label></div>
+  <h3>RBAC + Scope 权限模型</h3>
+  <pre><code><span class="kw">class</span> <span class="tp">PermissionManager</span>:
+    <span class="str">"""RBAC: 角色 → 权限 → 工具/操作"""</span>
+    ROLES = {
+        <span class="str">"admin"</span>: {<span class="str">"tools:*"</span>, <span class="str">"files:*"</span>, <span class="str">"system:*"</span>},
+        <span class="str">"user"</span>:  {<span class="str">"tools:search"</span>, <span class="str">"tools:read_file"</span>, <span class="str">"files:read"</span>},
+        <span class="str">"guest"</span>: {<span class="str">"tools:search"</span>},
+    }
+    <span class="kw">def</span> <span class="fn">can</span>(<span class="kw">self</span>, role, permission):
+        allowed = <span class="kw">self</span>.ROLES.get(role, <span class="bu">set</span>())
+        <span class="kw">return</span> permission <span class="kw">in</span> allowed <span class="kw">or</span> <span class="str">f"</span>{permission.split(<span class="str">':'</span>)[<span class="num">0</span>]}<span class="str">:*"</span> <span class="kw">in</span> allowed</code></pre>
+  <h3>安全防线层级</h3>
+  <table>
+    <tr><th>层</th><th>防线</th><th>作用</th></tr>
+    <tr><td>L1</td><td>工具白名单</td><td>只暴露注册过的工具</td></tr>
+    <tr><td>L2</td><td>参数校验</td><td>Pydantic 校验参数类型/范围</td></tr>
+    <tr><td>L3</td><td>权限检查</td><td>用户角色决定可见工具</td></tr>
+    <tr><td>L4</td><td>资源限制</td><td>超时/内存/网络/文件数</td></tr>
+    <tr><td>L5</td><td>沙箱隔离</td><td>Docker/gVisor/Firecracker</td></tr>
+    <tr><td>L6</td><td>审计日志</td><td>所有操作可追溯</td></tr>
+  </table>
+</section>
+
+<!-- S4 -->
+<section class="section" id="s4">
+  <h2><span class="s-num" style="background:var(--purple); color:#fff;">4</span>外部 API 集成</h2>
+  <p class="subtitle">Agent 需要操作真实世界的服务——GitHub、Slack、Jira、Gmail。每个 API 都有不同的认证和交互模式。</p>
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;"><input type="checkbox" id="check-s4" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;"><label for="check-s4" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label></div>
+  <h3>统一集成模式</h3>
+  <div class="diagram">Agent Tool Definition → Integration Adapter → External API
+                                    │
+                    ┌───────────────┼───────────────┐
+                    ▼               ▼               ▼
+               OAuth 2.0       API Key          Webhook
+               (用户授权)      (服务级)         (事件驱动)
+               
+典型场景:
+- GitHub:    OAuth → 用户给 Agent 授权 → Agent 代操作
+- SendGrid:  API Key → 服务级发邮件
+- Stripe:    Webhook → Agent 收到支付通知后自动处理</div>
+  <h3>OAuth Token 管理</h3>
+  <pre><code><span class="kw">class</span> <span class="tp">OAuthManager</span>:
+    <span class="str">"""管理用户的三方 OAuth Token"""</span>
+    <span class="kw">async def</span> <span class="fn">get_valid_token</span>(<span class="kw">self</span>, user_id, provider):
+        token = <span class="kw">await</span> db.get_token(user_id, provider)
+        <span class="kw">if</span> token.is_expired():
+            new_token = <span class="kw">await self</span>.refresh(token.refresh_token, provider)
+            <span class="kw">await</span> db.save_token(user_id, provider, new_token)
+            <span class="kw">return</span> new_token.access_token
+        <span class="kw">return</span> token.access_token
+
+<span class="cm"># GitHub 集成工具示例</span>
+<span class="kw">async def</span> <span class="fn">github_create_issue</span>(user_id, repo, title, body):
+    token = <span class="kw">await</span> oauth.get_valid_token(user_id, <span class="str">"github"</span>)
+    <span class="kw">async with</span> httpx.AsyncClient() <span class="kw">as</span> client:
+        resp = <span class="kw">await</span> client.post(
+            <span class="str">f"https://api.github.com/repos/</span>{repo}<span class="str">/issues"</span>,
+            headers={<span class="str">"Authorization"</span>: <span class="str">f"Bearer </span>{token}<span class="str">"</span>},
+            json={<span class="str">"title"</span>: title, <span class="str">"body"</span>: body},
+        )
+        <span class="kw">return</span> resp.json()</code></pre>
+</section>
+
+<!-- S5 -->
+<section class="section" id="s5">
+  <h2><span class="s-num" style="background:var(--pink); color:#fff;">5</span>插件系统设计</h2>
+  <p class="subtitle">让第三方开发者为你的 Agent 贡献工具。一个好的插件系统 = 生态护城河。</p>
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;"><input type="checkbox" id="check-s5" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;"><label for="check-s5" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label></div>
+  <h3>插件协议 (manifest.json)</h3>
+  <pre><code>{
+  <span class="str">"name"</span>: <span class="str">"weather"</span>,
+  <span class="str">"version"</span>: <span class="str">"1.0.0"</span>,
+  <span class="str">"tools"</span>: [{
+    <span class="str">"name"</span>: <span class="str">"get_weather"</span>,
+    <span class="str">"description"</span>: <span class="str">"获取城市天气"</span>,
+    <span class="str">"parameters"</span>: { <span class="str">"type"</span>: <span class="str">"object"</span>, <span class="str">"properties"</span>: { <span class="str">"city"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>}}}
+  }],
+  <span class="str">"entry"</span>: <span class="str">"main.py"</span>,
+  <span class="str">"permissions"</span>: [<span class="str">"network:api.weather.com"</span>]
+}</code></pre>
+  <div class="callout good"><strong>插件系统三个核心能力：</strong>① 动态加载/卸载 ② 隔离执行（每个插件独立进程或 Docker）③ 权限声明（manifest 中声明需要什么权限，用户授权后才启用）。</div>
+</section>
+
+<section class="section" id="practice" style="border-bottom:none;">
+  <h2><span class="s-num" style="background:var(--green); color:#fff;">🏗</span>综合实践：安全可扩展的工具平台</h2>
+  <p class="subtitle">整合工具注册、Docker 沙箱、权限模型、外部 API 集成、插件系统。</p>
+  <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;"><input type="checkbox" id="check-practice" onchange="updateProgress()" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer;"><label for="check-practice" style="font-size:0.9rem; color:var(--text-muted); cursor:pointer;">标记为已完成</label></div>
+  <pre><code>tool-platform/
+├── registry.py          <span class="cm"># ToolRegistry 统一注册</span>
+├── sandbox/
+│   ├── docker_exec.py   <span class="cm"># Docker 沙箱执行器</span>
+│   └── limits.py        <span class="cm"># 资源限制配置</span>
+├── auth/
+│   ├── permissions.py   <span class="cm"># RBAC 权限管理</span>
+│   └── oauth_manager.py <span class="cm"># OAuth Token 刷新</span>
+├── integrations/        <span class="cm"># GitHub/Slack/Jira 等适配器</span>
+├── plugins/
+│   ├── loader.py        <span class="cm"># 动态插件加载</span>
+│   └── examples/        <span class="cm"># 示例插件</span>
+└── middleware.py         <span class="cm"># 审计日志</span></code></pre>
+</section>
+
+<div class="nav-footer">
+  <a href="file:///D:/Hermes/workspace/agent-backend-learning/04-memory-rag/phase4.html">← 阶段 4</a>
+  <a href="file:///D:/Hermes/workspace/agent-backend-learning/06-observability/phase6.html" style="color:var(--accent);">阶段 6：可观测性 & 评估 →</a>
+</div>
+</main></div>
+<script>
+const SIDS=['s1','s2','s3','s4','s5','practice'];
+function updateProgress(){let done=0;SIDS.forEach(id=>{const cb=document.getElementById('check-'+id);const badge=document.getElementById('badge-'+id);if(cb&&cb.checked){done++;if(badge){badge.textContent='✓';badge.className='badge done'}}else{if(badge){badge.textContent='';badge.className='badge'}}});document.getElementById('progress-fill').style.width=(done/SIDS.length*100).toFixed(0)+'%';document.getElementById('progress-text').textContent=done+'/'+SIDS.length;const s={};SIDS.forEach(id=>{const cb=document.getElementById('check-'+id);if(cb)s[id]=cb.checked});localStorage.setItem('agent-phase5-progress',JSON.stringify(s))}
+function loadProgress(){const saved=localStorage.getItem('agent-phase5-progress');if(!saved)return;const state=JSON.parse(saved);SIDS.forEach(id=>{if(state[id]!==undefined){const cb=document.getElementById('check-'+id);if(cb)cb.checked=state[id]}});updateProgress()}
+function updateActiveNav(){const sections=SIDS.map(id=>document.getElementById(id));let cur=SIDS[0];sections.forEach((sec,i)=>{if(!sec)return;if(sec.getBoundingClientRect().top<=150)cur=SIDS[i]});document.querySelectorAll('.sidebar nav a').forEach(a=>{a.classList.remove('active');if(a.getAttribute('data-section')===cur)a.classList.add('active')})}
+window.addEventListener('scroll',updateActiveNav);window.addEventListener('load',()=>{loadProgress();updateActiveNav()});
+</script></body></html>

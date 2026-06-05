@@ -1,0 +1,99 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>阶段6：可观测性 & 评估 —— AI Agent 后端学习</title>
+<style>:root{--bg:#0d1117;--bg-card:#161b22;--bg-hover:#1c2129;--bg-code:#0d1117;--border:#30363d;--text:#c9d1d9;--text-muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--orange:#d2991d;--purple:#a371f7;--red:#f85149;--cyan:#39d2c0;--pink:#db61a2;}*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);line-height:1.7}.layout{display:flex;min-height:100vh}.sidebar{width:280px;flex-shrink:0;background:var(--bg-card);border-right:1px solid var(--border);padding:2rem 1.5rem;position:sticky;top:0;height:100vh;overflow-y:auto}.sidebar h3{font-size:.85rem;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.8rem}.sidebar .phase-title{font-size:1.1rem;font-weight:600;margin-bottom:1.5rem}.sidebar nav{display:flex;flex-direction:column;gap:.3rem}.sidebar nav a{color:var(--text-muted);text-decoration:none;font-size:.88rem;padding:.45rem .7rem;border-radius:6px;transition:all .15s;border-left:2px solid transparent}.sidebar nav a:hover{color:var(--text);background:var(--bg-hover)}.sidebar nav a.active{color:var(--accent);background:rgba(88,166,255,.08);border-left-color:var(--accent)}.sidebar .badge{display:inline-block;font-size:.7rem;padding:.12rem .4rem;border-radius:4px;margin-left:.3rem;background:var(--border);color:var(--text-muted)}.sidebar .badge.done{background:rgba(63,185,80,.15);color:var(--green)}.main{flex:1;padding:2.5rem 3rem;max-width:960px}.section{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}.section:last-child{border-bottom:none}.section h2{font-size:1.65rem;margin-bottom:.5rem;display:flex;align-items:center;gap:.7rem}.section .s-num{width:36px;height:36px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;flex-shrink:0}.section .subtitle{color:var(--text-muted);font-size:.9rem;margin-bottom:1.8rem}h3{font-size:1.2rem;margin:1.8rem 0 .7rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h4{font-size:1rem;margin:1.4rem 0 .5rem;color:var(--accent)}p{margin-bottom:.8rem;color:var(--text-muted)}ul,ol{margin:.5rem 0 1rem 1.5rem;color:var(--text-muted)}li{margin-bottom:.25rem}pre{background:var(--bg-code);border:1px solid var(--border);border-radius:8px;padding:1.2rem 1.4rem;margin:1rem 0 1.5rem;overflow-x:auto;font-size:.82rem;line-height:1.55;font-family:'JetBrains Mono','Fira Code','Cascadia Code','Consolas',monospace}pre code{color:#c9d1d9}code{font-family:'JetBrains Mono','Fira Code','Cascadia Code','Consolas',monospace;font-size:.85em;background:rgba(110,118,129,.15);padding:.15em .4em;border-radius:4px}pre code{background:none;padding:0;font-size:inherit}.kw{color:#ff7b72}.str{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.fn{color:#d2a8ff}.num{color:#79c0ff}.tp{color:#7ee787}.callout{border-left:3px solid var(--accent);background:rgba(88,166,255,.06);padding:.8rem 1.2rem;border-radius:0 6px 6px 0;margin:1.2rem 0;font-size:.9rem}.callout.warn{border-color:var(--orange);background:rgba(210,153,29,.06)}.callout.good{border-color:var(--green);background:rgba(63,185,80,.06)}.callout strong{color:var(--text)}table{width:100%;border-collapse:collapse;margin:1rem 0 1.5rem;font-size:.88rem}th,td{text-align:left;padding:.6rem .9rem;border-bottom:1px solid var(--border)}th{color:var(--accent);font-weight:600}td{color:var(--text-muted)}.diagram{background:var(--bg-code);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1rem 0;font-family:monospace;font-size:.82rem;white-space:pre;overflow-x:auto;color:var(--text-muted);line-height:1.5}.nav-footer{display:flex;justify-content:space-between;align-items:center;margin-top:3rem;padding-top:2rem;border-top:1px solid var(--border)}.nav-footer a{color:var(--accent);text-decoration:none;font-size:.9rem;padding:.5rem 1rem;border:1px solid var(--border);border-radius:6px;transition:all .15s}.nav-footer a:hover{background:var(--bg-hover);border-color:var(--accent)}.progress{display:flex;align-items:center;gap:.8rem;margin-bottom:1.2rem;font-size:.85rem;color:var(--text-muted)}.progress-bar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}.progress-fill{height:100%;background:var(--green);border-radius:2px;transition:width .3s}@media(max-width:860px){.layout{flex-direction:column}.sidebar{width:100%;height:auto;position:static;border-right:none;border-bottom:1px solid var(--border);padding:1.2rem}.sidebar nav{flex-direction:row;flex-wrap:wrap}.main{padding:1.5rem}}html{scroll-behavior:smooth}</style></head><body>
+<div class="layout"><aside class="sidebar"><h3>AI Agent 后端学习</h3><div class="phase-title">阶段 6：可观测性 &amp; 评估</div><div class="progress"><span>进度</span><div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div><span id="progress-text">0/4</span></div><nav><a href="#s1" data-section="s1">1. 分布式追踪 <span class="badge" id="badge-s1"></span></a><a href="#s2" data-section="s2">2. 结构化日志 <span class="badge" id="badge-s2"></span></a><a href="#s3" data-section="s3">3. Agent 评估体系 <span class="badge" id="badge-s3"></span></a><a href="#s4" data-section="s4">4. 成本监控优化 <span class="badge" id="badge-s4"></span></a><a href="#practice" data-section="practice" style="margin-top:.8rem;color:var(--green);">🏗 综合实践</a></nav></aside><main class="main">
+<div style="margin-bottom:3rem"><p style="color:var(--text-muted);font-size:.85rem;margin-bottom:.3rem">← <a href="file:///D:/Hermes/workspace/agent-backend-roadmap.html" style="color:var(--cyan)">总路线图</a> | <a href="file:///D:/Hermes/workspace/agent-backend-learning/05-tools-sandbox/phase5.html" style="color:var(--cyan)">← 阶段5</a></p><h1 style="font-size:2rem;background:linear-gradient(90deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent">阶段 6：可观测性 &amp; 评估</h1><p style="color:var(--text-muted)">分布式追踪、结构化日志、Agent Eval、成本优化 —— 让 Agent 从「能跑」到「可靠」</p><p style="color:var(--text-muted);font-size:.85rem">⏱ 预计 1-2 周 | 📚 4 个核心主题</p></div>
+
+<div class="callout"><strong>学习路径逻辑：</strong>Agent 跑起来了，但你怎么知道它在干什么？哪里慢了？为什么这次回答错了？本阶段解决「看见 Agent 内部」和「衡量 Agent 质量」的问题。<strong>追踪</strong>让你看到每一次 LLM 调用和工具执行 → <strong>日志</strong>让你事后排查问题 → <strong>评估</strong>让你量化 Agent 的好坏 → <strong>成本监控</strong>让你不破产。</div>
+
+<section class="section" id="s1"><h2><span class="s-num" style="background:var(--accent);color:#fff">1</span>分布式追踪</h2><p class="subtitle">Agent 执行一次任务涉及多次 LLM 调用 + 多次工具执行 + 多次 RAG 检索。没有追踪 = 盲飞。</p><div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem"><input type="checkbox" id="check-s1" onchange="updateProgress()" style="width:18px;height:18px;accent-color:var(--green);cursor:pointer"><label for="check-s1" style="font-size:.9rem;color:var(--text-muted);cursor:pointer">标记为已完成</label></div>
+<h3>OpenTelemetry + LangFuse 集成</h3>
+<div class="diagram">用户请求 (trace: abc123)
+├── Span: Agent Loop Start (0ms)
+├── Span: LLM Call #1 (5ms - 1200ms)
+│   ├── model: gpt-4o
+│   ├── input_tokens: 452
+│   ├── output_tokens: 28
+│   └── tool_calls: [search]
+├── Span: Tool Execution: search (1200ms - 1500ms)  
+│   ├── args: {query: "Python async"}
+│   └── result: "Found 5 docs"
+├── Span: LLM Call #2 (1500ms - 2800ms)
+│   ├── model: gpt-4o
+│   └── finish_reason: stop
+└── Span: Agent Loop End (2800ms)</div>
+<pre><code><span class="cm"># LangFuse 集成 (OpenTelemetry 兼容)</span>
+<span class="kw">from</span> langfuse <span class="kw">import</span> Langfuse
+langfuse = Langfuse(public_key=<span class="str">"pk-..."</span>, secret_key=<span class="str">"sk-..."</span>)
+
+trace = langfuse.trace(name=<span class="str">"agent-run"</span>, user_id=<span class="str">"user_123"</span>)
+
+<span class="kw">async def</span> <span class="fn">traced_llm_call</span>(trace, step, messages, tools):
+    span = trace.span(name=<span class="str">f"llm-call-</span>{step}<span class="str">"</span>, input={<span class="str">"messages"</span>: messages})
+    response = <span class="kw">await</span> llm.chat(messages, tools)
+    span.end(output={
+        <span class="str">"content"</span>: response.content,
+        <span class="str">"usage"</span>: response.usage,
+        <span class="str">"model"</span>: response.model,
+    })
+    <span class="kw">return</span> response</code></pre>
+</section>
+
+<section class="section" id="s2"><h2><span class="s-num" style="background:var(--green);color:#fff">2</span>结构化日志</h2><p class="subtitle">print() 不是日志系统。生产环境需要结构化、可查询、带上下文的日志。</p><div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem"><input type="checkbox" id="check-s2" onchange="updateProgress()" style="width:18px;height:18px;accent-color:var(--green);cursor:pointer"><label for="check-s2" style="font-size:.9rem;color:var(--text-muted);cursor:pointer">标记为已完成</label></div>
+<pre><code><span class="kw">import</span> structlog, uuid
+
+logger = structlog.get_logger()
+
+<span class="kw">async def</span> <span class="fn">agent_step</span>(session_id, step_num, action):
+    logger.info(<span class="str">"agent.step"</span>,
+        session_id=session_id,
+        step=step_num,
+        action=action,
+        timestamp=time.time(),
+    )
+
+<span class="cm"># 禁止打印完整 prompt / API Key!</span>
+<span class="kw">def</span> <span class="fn">safe_log_messages</span>(messages):
+    <span class="kw">return</span> [{<span class="str">"role"</span>: m[<span class="str">"role"</span>], <span class="str">"length"</span>: <span class="bu">len</span>(m[<span class="str">"content"</span>])} <span class="kw">for</span> m <span class="kw">in</span> messages]</code></pre>
+<h3>日志级别选择</h3><table><tr><th>级别</th><th>Agent 场景</th></tr><tr><td>INFO</td><td>正常步骤、工具调用、对话轮次</td></tr><tr><td>WARN</td><td>重试、降级、截断、Token 接近上限</td></tr><tr><td>ERROR</td><td>工具失败、LLM API 错误、超时</td></tr><tr><td>DEBUG</td><td>完整 prompt（脱敏后）、工具参数详情</td></tr></table>
+</section>
+
+<section class="section" id="s3"><h2><span class="s-num" style="background:var(--orange);color:#fff">3</span>Agent 评估体系</h2><p class="subtitle">Agent 的「好坏」不是感觉出来的。需要系统性评估：准确性、效率、安全性、用户体验。</p><div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem"><input type="checkbox" id="check-s3" onchange="updateProgress()" style="width:18px;height:18px;accent-color:var(--green);cursor:pointer"><label for="check-s3" style="font-size:.9rem;color:var(--text-muted);cursor:pointer">标记为已完成</label></div>
+<h3>Eval 四维度</h3><table><tr><th>维度</th><th>指标</th><th>测量方法</th></tr><tr><td><strong>任务成功率</strong></td><td>% of tasks completed correctly</td><td>人工标注 + LLM-as-Judge</td></tr><tr><td><strong>工具选择准确性</strong></td><td>% of correct tool selection</td><td>对比 ground-truth tool 序列</td></tr><tr><td><strong>效率</strong></td><td>Average steps per task / tokens per task</td><td>追踪数据统计</td></tr><tr><td><strong>安全性</strong></td><td>% of unsafe actions blocked</td><td>红队测试 + 自动化扫描</td></tr></table>
+<h3>LLM-as-Judge 评估</h3><pre><code><span class="kw">async def</span> <span class="fn">eval_agent_response</span>(question, agent_answer, ground_truth):
+    judge_prompt = <span class="str">f"""Rate this agent response:
+Question: </span>{question}<span class="str">
+Ground Truth: </span>{ground_truth}<span class="str">
+Agent Answer: </span>{agent_answer}<span class="str">
+Rate on: accuracy(1-5), completeness(1-5), conciseness(1-5).
+Return JSON: {{"accuracy": N, "completeness": N, "conciseness": N}}
+"""</span>
+    <span class="kw">return await</span> gpt4_eval.chat(messages=[{<span class="str">"role"</span>:<span class="str">"user"</span>,<span class="str">"content"</span>:judge_prompt}],response_format={<span class="str">"type"</span>:<span class="str">"json_object"</span>})</code></pre>
+</section>
+
+<section class="section" id="s4"><h2><span class="s-num" style="background:var(--purple);color:#fff">4</span>成本监控优化</h2><p class="subtitle">Agent 跑一个月后，最大的惊喜（或惊吓）是 LLM API 账单。成本监控不是可选项。</p><div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem"><input type="checkbox" id="check-s4" onchange="updateProgress()" style="width:18px;height:18px;accent-color:var(--green);cursor:pointer"><label for="check-s4" style="font-size:.9rem;color:var(--text-muted);cursor:pointer">标记为已完成</label></div>
+<h3>成本监控仪表盘指标</h3><table><tr><th>指标</th><th>含义</th><th>告警阈值</th></tr><tr><td>每日总成本</td><td>每天所有 LLM 调用总花费</td><td>> $10/天</td></tr><tr><td>每次对话平均成本</td><td>单次用户对话的平均花费</td><td>> $0.05/对话</td></tr><tr><td>平均 Steps/任务</td><td>Agent 完成一个任务的平均步数</td><td>> 10 steps</td></tr><tr><td>浪费率</td><td>因中断/重试/超时产生的无效 token 占比</td><td>> 15%</td></tr></table>
+<div class="callout good"><strong>省钱铁律：</strong>① gpt-4o-mini 做简单任务（分类/路由/摘要），gpt-4o 只做最难的部分 ② 缓存 system prompt (prompt caching 省 50% input 成本) ③ 监控 max_steps 超限率——如果 Agent 频繁跑满 max_steps，说明任务太复杂需要拆分。</div>
+</section>
+
+<section class="section" id="practice" style="border-bottom:none"><h2><span class="s-num" style="background:var(--green);color:#fff">🏗</span>综合实践</h2><div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem"><input type="checkbox" id="check-practice" onchange="updateProgress()" style="width:18px;height:18px;accent-color:var(--green);cursor:pointer"><label for="check-practice" style="font-size:.9rem;color:var(--text-muted);cursor:pointer">标记为已完成</label></div>
+<pre><code>observability/
+├── tracing.py         <span class="cm"># LangFuse / OpenTelemetry 集成</span>
+├── logging_config.py  <span class="cm"># structlog 配置 + 脱敏</span>
+├── eval/
+│   ├── judge.py       <span class="cm"># LLM-as-Judge 评估</span>
+│   ├── test_cases.py   <span class="cm"># 评估用例管理</span>
+│   └── dashboard.py    <span class="cm"># 结果可视化</span>
+├── cost/
+│   ├── tracker.py     <span class="cm"># 实时成本追踪</span>
+│   └── alerts.py      <span class="cm"># 成本告警</span>
+└── grafana/            <span class="cm"># Grafana dashboards</span></code></pre>
+</section>
+<div class="nav-footer"><a href="file:///D:/Hermes/workspace/agent-backend-learning/05-tools-sandbox/phase5.html">← 阶段 5</a><a href="file:///D:/Hermes/workspace/agent-backend-learning/07-deployment/phase7.html" style="color:var(--accent)">阶段 7：部署 & 生产化 →</a></div>
+</main></div>
+<script>
+const SIDS=['s1','s2','s3','s4','practice'];
+function updateProgress(){let done=0;SIDS.forEach(id=>{const cb=document.getElementById('check-'+id);const badge=document.getElementById('badge-'+id);if(cb&&cb.checked){done++;if(badge){badge.textContent='✓';badge.className='badge done'}}else{if(badge){badge.textContent='';badge.className='badge'}}});document.getElementById('progress-fill').style.width=(done/SIDS.length*100).toFixed(0)+'%';document.getElementById('progress-text').textContent=done+'/'+SIDS.length;const s={};SIDS.forEach(id=>{const cb=document.getElementById('check-'+id);if(cb)s[id]=cb.checked});localStorage.setItem('agent-phase6-progress',JSON.stringify(s))}
+function loadProgress(){const saved=localStorage.getItem('agent-phase6-progress');if(!saved)return;const state=JSON.parse(saved);SIDS.forEach(id=>{if(state[id]!==undefined){const cb=document.getElementById('check-'+id);if(cb)cb.checked=state[id]}});updateProgress()}
+function updateActiveNav(){const sections=SIDS.map(id=>document.getElementById(id));let cur=SIDS[0];sections.forEach((sec,i)=>{if(!sec)return;if(sec.getBoundingClientRect().top<=150)cur=SIDS[i]});document.querySelectorAll('.sidebar nav a').forEach(a=>{a.classList.remove('active');if(a.getAttribute('data-section')===cur)a.classList.add('active')})}
+window.addEventListener('scroll',updateActiveNav);window.addEventListener('load',()=>{loadProgress();updateActiveNav()});
+</script></body></html>
