@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 后端学习路线图</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-card: #161b22;
+    --bg-hover: #1c2129;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --orange: #d2991d;
+    --purple: #a371f7;
+    --red: #f85149;
+    --cyan: #39d2c0;
+    --pink: #db61a2;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 3rem 2rem;
+    text-align: center;
+  }
+  .header h1 {
+    font-size: 2.4rem;
+    background: linear-gradient(90deg, var(--accent), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+  }
+  .header .subtitle {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+  }
+  .header .meta {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  /* Progress */
+  .progress-bar-wrap {
+    max-width: 900px;
+    margin: 1.5rem auto 0;
+    background: var(--bg-card);
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    border: 1px solid var(--border);
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+  }
+  .progress-track {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--green), var(--accent));
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+
+  /* Container */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--border);
+    overflow-x: auto;
+  }
+  .tab-btn {
+    padding: 0.8rem 1.4rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* Phase */
+  .phase {
+    margin-bottom: 2rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg-card);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .phase:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+  .phase-header {
+    padding: 1.2rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .phase-num {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  .phase-info { flex: 1; }
+  .phase-info h2 { font-size: 1.15rem; margin-bottom: 0.2rem; }
+  .phase-info .tagline { font-size: 0.85rem; color: var(--text-muted); }
+  .phase-duration {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    background: var(--bg);
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .phase-arrow {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    transition: transform 0.3s;
+  }
+  .phase.open .phase-arrow { transform: rotate(180deg); }
+
+  .phase-body {
+    display: none;
+    padding: 0 1.5rem 1.5rem;
+  }
+  .phase.open .phase-body { display: block; }
+
+  /* Topics */
+  .topics { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+  .topic {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem;
+    transition: border-color 0.2s;
+  }
+  .topic:hover { border-color: var(--accent); }
+  .topic h4 {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .topic .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .topic ul {
+    list-style: none;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+  .topic li { padding: 0.15rem 0; }
+  .topic li::before { content: '▸ '; color: var(--accent); }
+
+  /* Resources */
+  .resources {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+  .resources h5 {
+    font-size: 0.8rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+  .resources a {
+    display: inline-block;
+    color: var(--cyan);
+    text-decoration: none;
+    font-size: 0.82rem;
+    margin-right: 1rem;
+    margin-bottom: 0.3rem;
+  }
+  .resources a:hover { text-decoration: underline; }
+
+  /* Checkbox */
+  .topic input[type="checkbox"] {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    margin-right: 0.4rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .topic input[type="checkbox"]:checked {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .topic input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: -2px;
+    left: 2px;
+    color: #fff;
+    font-size: 12px;
+  }
+
+  /* Color themes per phase */
+  .c1 { --ph: #58a6ff; }
+  .c2 { --ph: #3fb950; }
+  .c3 { --ph: #d2991d; }
+  .c4 { --ph: #a371f7; }
+  .c5 { --ph: #f85149; }
+  .c6 { --ph: #39d2c0; }
+  .c7 { --ph: #db61a2; }
+  .c-phase { background: var(--ph); }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .header h1 { font-size: 1.6rem; }
+    .topics { grid-template-columns: 1fr; }
+    .phase-duration { display: none; }
+  }
+
+  /* Print */
+  @media print {
+    body { background: #fff; color: #000; }
+    .phase-body { display: block !important; }
+    .phase { break-inside: avoid; }
+    .tabs { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🤖 AI Agent 后端学习路线图</h1>
+  <p class="subtitle">从零到一掌握 AI Agent 后端核心技术栈</p>
+  <div class="meta">
+    <span>📅 预计周期：12-16 周</span>
+    <span>📚 7 个阶段</span>
+    <span>🎯 目标：能独立构建生产级 Agent 后端</span>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-label">
+      <span>学习进度</span>
+      <span id="progress-text">0 / 35 项完成</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="tabs">
+    <button class="tab-btn active" data-view="all">全部</button>
+    <button class="tab-btn" data-view="1">阶段 1</button>
+    <button class="tab-btn" data-view="2">阶段 2</button>
+    <button class="tab-btn" data-view="3">阶段 3</button>
+    <button class="tab-btn" data-view="4">阶段 4</button>
+    <button class="tab-btn" data-view="5">阶段 5</button>
+    <button class="tab-btn" data-view="6">阶段 6</button>
+    <button class="tab-btn" data-view="7">阶段 7</button>
+  </div>
+
+  <!-- Phase 1 -->
+  <div class="phase c1 open" data-phase="1">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num c-phase">1</div>
+      <div class="phase-info">
+        <h2>后端基础 &amp; 网络协议</h2>
+        <p class="tagline">HTTP、WebSocket、SSE —— Agent 通信的基石</p>
+      </div>
+      <span class="phase-duration">2-3 周</span>
+      <span class="phase-arrow">▼</span>
+    </div>
+    <div class="phase-body">
+      <div class="topics">
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--accent)"></span> HTTP 协议深入</h4>
+          <ul>
+            <li>请求/响应模型、状态码、Headers</li>
+            <li>RESTful API 设计原则</li>
+            <li>Content-Type、CORS、缓存策略</li>
+            <li>实践：用 FastAPI / Express 构建 REST API</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--accent)"></span> WebSocket 实时通信</h4>
+          <ul>
+            <li>WS 握手、帧格式、心跳机制</li>
+            <li>房间管理、广播、点对点消息</li>
+            <li>对比：WebSocket vs HTTP vs SSE</li>
+            <li>实践：用 ws / socket.io 实现聊天</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--accent)"></span> SSE 服务端推送</h4>
+          <ul>
+            <li>Server-Sent Events 协议细节</li>
+            <li>text/event-stream、自动重连</li>
+            <li>Agent 中的流式输出场景</li>
+            <li>实践：实现 LLM token 流式返回</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--accent)"></span> 异步编程模型</h4>
+          <ul>
+            <li>Python asyncio / Node.js Event Loop</li>
+            <li>协程、Future、Task 生命周期</li>
+            <li>并发 vs 并行、GIL 的影响</li>
+            <li>实践：高并发 API 服务</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--accent)"></span> 认证与安全基础</h4>
+          <ul>
+            <li>JWT、OAuth 2.0 授权码流程</li>
+            <li>API Key 管理最佳实践</li>
+            <li>HTTPS/TLS 原理</li>
+            <li>实践：实现 API Key + JWT 双认证</li>
+          </ul>
+        </div>
+      </div>
+      <div class="resources">
+        <h5>📖 推荐资源</h5>
+        <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP" target="_blank">MDN HTTP Guide</a>
+        <a href="https://fastapi.tiangolo.com/" target="_blank">FastAPI 官方文档</a>
+        <a href="https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events" target="_blank">MDN SSE</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 2 -->
+  <div class="phase c2" data-phase="2">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num c-phase">2</div>
+      <div class="phase-info">
+        <h2>LLM 基础 &amp; API 集成</h2>
+        <p class="tagline">理解大模型原理，掌握主流 API 调用与流式处理</p>
+      </div>
+      <span class="phase-duration">2 周</span>
+      <span class="phase-arrow">▼</span>
+    </div>
+    <div class="phase-body">
+      <div class="topics">
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--green)"></span> Transformer 架构概览</h4>
+          <ul>
+            <li>Self-Attention、Multi-Head Attention</li>
+            <li>Tokenization (BPE, SentencePiece)</li>
+            <li>Decoder-only vs Encoder-Decoder</li>
+            <li>参数量、上下文窗口、推理成本</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--green)"></span> OpenAI API 实战</h4>
+          <ul>
+            <li>Chat Completions、Function Calling</li>
+            <li>stream=True 的 SSE 解析</li>
+            <li>token 计数、速率限制处理</li>
+            <li>实践：封装带重试的 LLM 客户端</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--green)"></span> 多 Provider 统一适配</h4>
+          <ul>
+            <li>OpenAI / Anthropic / Google / DeepSeek</li>
+            <li>LiteLLM：统一接口调用</li>
+            <li>Provider 故障切换策略</li>
+            <li>实践：多模型路由网关</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--green)"></span> Prompt Engineering 核心</h4>
+          <ul>
+            <li>System Prompt 设计模式</li>
+            <li>Few-shot、Chain-of-Thought</li>
+            <li>Prompt 模板引擎 (Jinja2)</li>
+            <li>实践：构建可复用的 Prompt 库</li>
+          </ul>
+        </div>
+      </div>
+      <div class="resources">
+        <h5>📖 推荐资源</h5>
+        <a href="https://platform.openai.com/docs" target="_blank">OpenAI API Docs</a>
+        <a href="https://docs.litellm.ai/" target="_blank">LiteLLM 文档</a>
+        <a href="https://www.promptingguide.ai/" target="_blank">Prompt Engineering Guide</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 3 -->
+  <div class="phase c3" data-phase="3">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num c-phase">3</div>
+      <div class="phase-info">
+        <h2>Agent 核心架构</h2>
+        <p class="tagline">Tool Calling、ReAct 模式、规划与执行引擎</p>
+      </div>
+      <span class="phase-duration">3 周</span>
+      <span class="phase-arrow">▼</span>
+    </div>
+    <div class="phase-body">
+      <div class="topics">
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--orange)"></span> Tool / Function Calling</h4>
+          <ul>
+            <li>JSON Schema 工具定义规范</li>
+            <li>并行工具调用 (parallel_tool_calls)</li>
+            <li>工具结果注入对话上下文</li>
+            <li>实践：实现天气/搜索/计算器工具</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--orange)"></span> ReAct / 思考链模式</h4>
+          <ul>
+            <li>Reasoning + Acting 循环</li>
+            <li>Thought → Action → Observation</li>
+            <li>终止条件与最大步数控制</li>
+            <li>实践：从零实现 ReAct Agent</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--orange)"></span> 规划与任务分解</h4>
+          <ul>
+            <li>Plan-and-Execute 模式</li>
+            <li>任务 DAG 拓扑排序执行</li>
+            <li>动态重规划与错误恢复</li>
+            <li>实践：多步骤任务编排器</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--orange)"></span> MCP 协议 (Model Context Protocol)</h4>
+          <ul>
+            <li>MCP 架构：Client-Server 模型</li>
+            <li>Tool/Resource/Prompt 三大原语</li>
+            <li>stdio / HTTP + SSE 传输</li>
+            <li>实践：编写 MCP Server + Client</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--orange)"></span> 多 Agent 协作</h4>
+          <ul>
+            <li>Orchestrator-Worker 模式</li>
+            <li>Agent 间消息传递协议</li>
+            <li>任务委派与结果汇总</li>
+            <li>实践：主 Agent 调度子 Agent</li>
+          </ul>
+        </div>
+      </div>
+      <div class="resources">
+        <h5>📖 推荐资源</h5>
+        <a href="https://modelcontextprotocol.io/" target="_blank">MCP 官方文档</a>
+        <a href="https://langchain-ai.github.io/langgraph/" target="_blank">LangGraph</a>
+        <a href="https://arxiv.org/abs/2210.03629" target="_blank">ReAct 论文</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 4 -->
+  <div class="phase c4" data-phase="4">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num c-phase">4</div>
+      <div class="phase-info">
+        <h2>记忆 &amp; 知识检索</h2>
+        <p class="tagline">RAG、向量数据库、上下文管理与持久化</p>
+      </div>
+      <span class="phase-duration">2-3 周</span>
+      <span class="phase-arrow">▼</span>
+    </div>
+    <div class="phase-body">
+      <div class="topics">
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--purple)"></span> Embedding 与向量检索</h4>
+          <ul>
+            <li>文本 Embedding 模型对比</li>
+            <li>余弦相似度、ANN 近似搜索</li>
+            <li>Chunking 策略 (固定/语义/递归)</li>
+            <li>实践：文档分块 + 向量检索</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--purple)"></span> 向量数据库选型</h4>
+          <ul>
+            <li>ChromaDB / Qdrant / Milvus / Weaviate</li>
+            <li>本地 vs 云托管方案对比</li>
+            <li>索引类型：HNSW、IVF、DiskANN</li>
+            <li>实践：构建本地知识库</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--purple)"></span> RAG 完整流水线</h4>
+          <ul>
+            <li>Ingest → Index → Retrieve → Generate</li>
+            <li>Hybrid Search (关键词+向量)</li>
+            <li>Re-ranking、上下文压缩</li>
+            <li>实践：端到端 RAG 系统</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--purple)"></span> Agent 记忆系统</h4>
+          <ul>
+            <li>短期记忆：对话历史管理</li>
+            <li>长期记忆：向量化 + 摘要存储</li>
+            <li>工作记忆：临时状态上下文</li>
+            <li>实践：带记忆的持久化 Agent</li>
+          </ul>
+        </div>
+      </div>
+      <div class="resources">
+        <h5>📖 推荐资源</h5>
+        <a href="https://www.pinecone.io/learn/" target="_blank">Pinecone Learn</a>
+        <a href="https://qdrant.tech/documentation/" target="_blank">Qdrant 文档</a>
+        <a href="https://docs.trychroma.com/" target="_blank">ChromaDB 文档</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 5 -->
+  <div class="phase c5" data-phase="5">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num c-phase">5</div>
+      <div class="phase-info">
+        <h2>工具生态 &amp; 安全沙箱</h2>
+        <p class="tagline">工具注册、代码执行、权限控制与安全防护</p>
+      </div>
+      <span class="phase-duration">2 周</span>
+      <span class="phase-arrow">▼</span>
+    </div>
+    <div class="phase-body">
+      <div class="topics">
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--red)"></span> 工具注册与发现</h4>
+          <ul>
+            <li>工具 Schema 标准化定义</li>
+            <li>动态工具注册/卸载</li>
+            <li>工具分类与命名空间</li>
+            <li>实践：插件化工具系统</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--red)"></span> 代码执行沙箱</h4>
+          <ul>
+            <li>Docker 容器隔离执行</li>
+            <li>资源限制：CPU/内存/网络/时间</li>
+            <li>E2B / Daytona 等云沙箱</li>
+            <li>实践：安全的 Python 执行器</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--red)"></span> 权限与安全模型</h4>
+          <ul>
+            <li>工具白名单与权限分级</li>
+            <li>用户确认机制 (Human-in-the-Loop)</li>
+            <li>Prompt 注入防御策略</li>
+            <li>审计日志与操作回放</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--red)"></span> 外部 API 集成</h4>
+          <ul>
+            <li>GitHub / Slack / Jira / 数据库</li>
+            <li>Webhook 回调处理</li>
+            <li>OAuth 授权流程集成</li>
+            <li>实践：GitHub Issue Agent</li>
+          </ul>
+        </div>
+      </div>
+      <div class="resources">
+        <h5>📖 推荐资源</h5>
+        <a href="https://e2b.dev/docs" target="_blank">E2B Sandbox</a>
+        <a href="https://docs.docker.com/engine/security/" target="_blank">Docker Security</a>
+        <a href="https://www.promptingguide.ai/risks" target="_blank">Prompt Injection 防护</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 6 -->
+  <div class="phase c6" data-phase="6">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num c-phase">6</div>
+      <div class="phase-info">
+        <h2>可观测性 &amp; 评估</h2>
+        <p class="tagline">日志追踪、指标监控、Agent 评测与质量保障</p>
+      </div>
+      <span class="phase-duration">1-2 周</span>
+      <span class="phase-arrow">▼</span>
+    </div>
+    <div class="phase-body">
+      <div class="topics">
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--cyan)"></span> LLM 调用追踪</h4>
+          <ul>
+            <li>LangSmith / LangFuse / Phoenix</li>
+            <li>Span、Trace 树形结构</li>
+            <li>Token 用量、延迟、成本统计</li>
+            <li>实践：接入 LangFuse 全链路追踪</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--cyan)"></span> 结构化日志</h4>
+          <ul>
+            <li>Python logging / structlog</li>
+            <li>请求 ID 贯穿全链路</li>
+            <li>日志级别策略：DEBUG vs INFO</li>
+            <li>实践：Agent 操作日志仪表盘</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--cyan)"></span> Agent 评测体系</h4>
+          <ul>
+            <li>任务成功率、工具调用准确率</li>
+            <li>LLM-as-Judge 自动评分</li>
+            <li>回归测试与 Benchmark Suite</li>
+            <li>实践：构建 Agent Eval 流水线</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--cyan)"></span> 成本优化</h4>
+          <ul>
+            <li>Prompt Caching 策略</li>
+            <li>模型分层：小模型路由 + 大模型兜底</li>
+            <li>上下文窗口压缩</li>
+            <li>实践：成本仪表盘 + 告警</li>
+          </ul>
+        </div>
+      </div>
+      <div class="resources">
+        <h5>📖 推荐资源</h5>
+        <a href="https://langfuse.com/docs" target="_blank">LangFuse 文档</a>
+        <a href="https://docs.smith.langchain.com/" target="_blank">LangSmith</a>
+        <a href="https://www.comet.com/site/products/llm/" target="_blank">Opik (Comet ML)</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 7 -->
+  <div class="phase c7" data-phase="7">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num c-phase">7</div>
+      <div class="phase-info">
+        <h2>部署 &amp; 生产化</h2>
+        <p class="tagline">容器化、CI/CD、扩展性与高可用架构</p>
+      </div>
+      <span class="phase-duration">2 周</span>
+      <span class="phase-arrow">▼</span>
+    </div>
+    <div class="phase-body">
+      <div class="topics">
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--pink)"></span> Docker 容器化</h4>
+          <ul>
+            <li>多阶段构建优化镜像大小</li>
+            <li>Docker Compose 编排多服务</li>
+            <li>环境变量与 Secrets 管理</li>
+            <li>实践：一键部署 Agent 全家桶</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--pink)"></span> 消息队列 &amp; 异步任务</h4>
+          <ul>
+            <li>Redis / RabbitMQ 任务队列</li>
+            <li>Celery / BullMQ 任务调度</li>
+            <li>长时间 Agent 任务的后台执行</li>
+            <li>实践：Agent 任务的异步执行</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--pink)"></span> 高可用架构</h4>
+          <ul>
+            <li>无状态服务水平扩展</li>
+            <li>Redis 会话共享与缓存</li>
+            <li>速率限制与熔断器模式</li>
+            <li>实践：Nginx 反向代理 + 多实例</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--pink)"></span> CI/CD 与监控告警</h4>
+          <ul>
+            <li>GitHub Actions / GitLab CI</li>
+            <li>自动化测试 + Eval 门禁</li>
+            <li>Prometheus + Grafana 监控</li>
+            <li>实践：完整的 CI/CD Pipeline</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <h4><input type="checkbox" onchange="updateProgress()"><span class="dot" style="background:var(--pink)"></span> 最终项目：构建完整 Agent</h4>
+          <ul>
+            <li>整合所有阶段的知识</li>
+            <li>带记忆 + 工具的持久化 Agent</li>
+            <li>MCP 协议接入 + 流式输出</li>
+            <li>Docker 部署 + 监控面板</li>
+          </ul>
+        </div>
+      </div>
+      <div class="resources">
+        <h5>📖 推荐资源</h5>
+        <a href="https://docs.docker.com/get-started/" target="_blank">Docker 入门</a>
+        <a href="https://docs.celeryq.dev/" target="_blank">Celery 文档</a>
+        <a href="https://grafana.com/docs/" target="_blank">Grafana 文档</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <p>💡 建议：每个阶段至少完成一个动手项目，理论结合实践效果最佳</p>
+  <p>默认全部展开 | 点击阶段标题折叠 | 勾选复选框追踪进度</p>
+</div>
+
+<script>
+// Save/load checkbox state
+const STORAGE_KEY = 'agent-roadmap-progress';
+function saveProgress() {
+  const checks = document.querySelectorAll('.topic input[type="checkbox"]');
+  const state = Array.from(checks).map(c => c.checked);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+function loadProgress() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (!saved) return;
+  const state = JSON.parse(saved);
+  const checks = document.querySelectorAll('.topic input[type="checkbox"]');
+  checks.forEach((c, i) => { if (state[i]) c.checked = true; });
+}
+function updateProgress() {
+  saveProgress();
+  const total = document.querySelectorAll('.topic input[type="checkbox"]').length;
+  const done = document.querySelectorAll('.topic input[type="checkbox"]:checked').length;
+  document.getElementById('progress-fill').style.width = (done/total*100) + '%';
+  document.getElementById('progress-text').textContent = done + ' / ' + total + ' 项完成';
+}
+
+// Toggle phase
+function togglePhase(header) {
+  const phase = header.parentElement;
+  phase.classList.toggle('open');
+}
+
+// Tab filter
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    const view = this.dataset.view;
+    document.querySelectorAll('.phase').forEach(p => {
+      if (view === 'all' || p.dataset.phase === view) {
+        p.style.display = '';
+      } else {
+        p.style.display = 'none';
+      }
+    });
+  });
+});
+
+loadProgress();
+updateProgress();
+</script>
+
+</body>
+</html>
